@@ -43,30 +43,20 @@ class Orders extends BaseController
             return redirect()->to('/admin/login');
         }
 
-        // Check if seller can only view orders containing their products
-        if (session()->get('role') === 'seller') {
-            $hasAccess = $this->orderModel->select('orders.id')
-                              ->join('order_items', 'orders.id = order_items.order_id')
-                              ->join('products', 'order_items.product_id = products.id')
-                              ->where('orders.id', $id)
-                              ->where('products.user_id', session()->get('user_id'))
-                              ->first();
-            
-            if (!$hasAccess) {
-                return redirect()->to('/admin/orders')->with('error', 'Akses ditolak');
-            }
+        $order = $this->orderModel->select('customer_orders.*, divisions.nama_divisi')
+                                  ->join('divisions', 'divisions.id = customer_orders.division_id')
+                                  ->where('customer_orders.id', $id)
+                                  ->first();
+
+        if (!$order) {
+            return redirect()->to('/admin/orders')->with('error', 'Pesanan tidak ditemukan');
         }
 
         $db = \Config\Database::connect();
-        $order = $db->table('orders')
-                   ->select('orders.*, customers.name as customer_name, customers.phone, customers.address')
-                   ->join('customers', 'customers.id = orders.customer_id')
-                   ->where('orders.id', $id)
-                   ->get()->getRow();
-
-        $orderItems = $db->table('order_items')
-                        ->select('order_items.*, products.name as product_name')
-                        ->join('products', 'products.id = order_items.product_id')
+        $orderItems = $db->table('customer_order_items')
+                        ->select('customer_order_items.*, product_variants.variant_name, products.name as product_name')
+                        ->join('product_variants', 'product_variants.id = customer_order_items.product_variant_id')
+                        ->join('products', 'products.id = product_variants.product_id')
                         ->where('order_id', $id)
                         ->get()->getResult();
 

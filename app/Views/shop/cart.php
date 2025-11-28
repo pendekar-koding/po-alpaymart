@@ -113,9 +113,11 @@
                     <thead style="background: linear-gradient(45deg, #667eea, #764ba2); color: white;">
                         <tr>
                             <th style="border: none; padding: 1rem;"><i class="fas fa-box me-2"></i>Produk</th>
+                            <th style="border: none; padding: 1rem;"><i class="fas fa-tags me-2"></i>Varian</th>
                             <th style="border: none; padding: 1rem;"><i class="fas fa-tag me-2"></i>Harga</th>
                             <th style="border: none; padding: 1rem;"><i class="fas fa-sort-numeric-up me-2"></i>Qty</th>
                             <th style="border: none; padding: 1rem;"><i class="fas fa-calculator me-2"></i>Subtotal</th>
+                            <th style="border: none; padding: 1rem;"><i class="fas fa-cog me-2"></i>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -126,18 +128,24 @@
                             $total += $subtotal;
                         ?>
                         <tr>
-                            <td style="padding: 1rem; font-weight: 600; color: #495057;"><?= $item['variant_name'] ?></td>
+                            <td style="padding: 1rem; font-weight: 600; color: #495057;"><?= $item['product_name'] ?? 'Produk' ?></td>
+                            <td style="padding: 1rem; color: #6c757d;"><?= $item['variant_name'] ?></td>
                             <td style="padding: 1rem; color: #28a745; font-weight: 500;">Rp <?= number_format($item['price'], 0, ',', '.') ?></td>
                             <td style="padding: 1rem;">
                                 <span class="badge" style="background: linear-gradient(45deg, #667eea, #764ba2); padding: 0.5rem 1rem; border-radius: 15px;"><?= $item['quantity'] ?></span>
                             </td>
                             <td style="padding: 1rem; color: #28a745; font-weight: 600; font-size: 1.1em;">Rp <?= number_format($subtotal, 0, ',', '.') ?></td>
+                            <td style="padding: 1rem;">
+                                <button class="btn btn-sm btn-danger" onclick="removeFromCart(<?= $item['variant_id'] ?>)" title="Hapus dari keranjang">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
                     <tfoot style="background: rgba(102, 126, 234, 0.1);">
                         <tr>
-                            <th colspan="3" style="padding: 1.5rem; font-size: 1.2em; color: #495057;">Total Pembayaran</th>
+                            <th colspan="5" style="padding: 1.5rem; font-size: 1.2em; color: #495057;">Total Pembayaran</th>
                             <th style="padding: 1.5rem; font-size: 1.3em; color: #28a745; font-weight: bold;">Rp <?= number_format($total, 0, ',', '.') ?></th>
                         </tr>
                     </tfoot>
@@ -154,8 +162,16 @@
                 ?>
                 <div class="cart-item-card">
                     <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h6 class="mb-0" style="color: #495057; font-weight: 600;"><?= $item['variant_name'] ?></h6>
-                        <span class="badge" style="background: linear-gradient(45deg, #667eea, #764ba2); padding: 0.4rem 0.8rem; border-radius: 12px;">x<?= $item['quantity'] ?></span>
+                        <div>
+                            <h6 class="mb-0" style="color: #495057; font-weight: 600;"><?= $item['product_name'] ?? 'Produk' ?></h6>
+                            <small class="text-muted"><?= $item['variant_name'] ?></small>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge" style="background: linear-gradient(45deg, #667eea, #764ba2); padding: 0.4rem 0.8rem; border-radius: 12px;">x<?= $item['quantity'] ?></span>
+                            <button class="btn btn-sm btn-danger" onclick="removeFromCart(<?= $item['variant_id'] ?>)" title="Hapus dari keranjang">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-6">
@@ -180,9 +196,9 @@
             </div>
             
             <div class="text-end mt-4">
-                <button class="btn btn-checkout text-white">
+                <a href="<?= base_url('checkout') ?>" class="btn btn-checkout text-white">
                     <i class="fas fa-credit-card me-2"></i>Checkout Sekarang
-                </button>
+                </a>
             </div>
         <?php else: ?>
             <div class="empty-cart text-center">
@@ -198,5 +214,31 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function removeFromCart(variantId) {
+            if (confirm('Apakah Anda yakin ingin menghapus produk ini dari keranjang?')) {
+                fetch('<?= base_url('cart/remove') ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: 'variant_id=' + variantId
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat menghapus produk');
+                });
+            }
+        }
+    </script>
 </body>
 </html>

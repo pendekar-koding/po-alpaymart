@@ -46,6 +46,7 @@
               <th>ID</th>
               <th>Customer</th>
               <th>Total</th>
+              <th>Pembayaran</th>
               <th>Status</th>
               <th>Tanggal</th>
             </tr>
@@ -53,15 +54,16 @@
           <tbody>
             <?php foreach ($recent_orders as $order): ?>
             <tr>
-              <td><?= $order->id ?></td>
-              <td><?= $order->customer_name ?></td>
-              <td>Rp <?= number_format($order->total_amount, 0, ',', '.') ?></td>
+              <td><?= $order['id'] ?></td>
+              <td><?= $order['customer_name'] ?></td>
+              <td>Rp <?= number_format($order['total_amount'], 0, ',', '.') ?></td>
+              <td><span class="badge badge-<?= $order['payment_method'] == 'QRIS' ? 'primary' : 'success' ?>"><?= $order['payment_method'] ?></span></td>
               <td>
-                <span class="badge badge-<?= $order->status == 'pending' ? 'warning' : ($order->status == 'delivered' ? 'success' : 'info') ?>">
-                  <?= ucfirst($order->status) ?>
+                <span class="badge badge-<?= $order['status'] == 'pending' ? 'warning' : ($order['status'] == 'delivered' ? 'success' : 'info') ?>">
+                  <?= ucfirst($order['status']) ?>
                 </span>
               </td>
-              <td><?= date('d/m/Y H:i', strtotime($order->created_at)) ?></td>
+              <td><?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></td>
             </tr>
             <?php endforeach; ?>
           </tbody>

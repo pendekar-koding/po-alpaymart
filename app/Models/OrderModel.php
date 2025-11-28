@@ -6,39 +6,26 @@ use CodeIgniter\Model;
 
 class OrderModel extends Model
 {
-    protected $table = 'orders';
+    protected $table = 'customer_orders';
     protected $primaryKey = 'id';
-    protected $allowedFields = ['customer_id', 'total_amount', 'status'];
+    protected $allowedFields = ['order_number', 'customer_name', 'customer_whatsapp', 'division_id', 'payment_method', 'total_amount', 'status'];
     protected $useTimestamps = true;
     protected $createdField = 'created_at';
     protected $updatedField = 'updated_at';
 
-    public function getOrdersWithCustomer()
+    public function getOrdersWithDivision()
     {
-        return $this->select('orders.*, customers.name as customer_name')
-                    ->join('customers', 'customers.id = orders.customer_id', 'left')
-                    ->orderBy('orders.created_at', 'DESC')
+        return $this->select('customer_orders.*, divisions.nama_divisi')
+                    ->join('divisions', 'divisions.id = customer_orders.division_id')
+                    ->orderBy('customer_orders.created_at', 'DESC')
                     ->findAll();
     }
 
-    public function getOrderCountBySeller($userId)
+    public function getOrdersWithCustomer()
     {
-        return $this->select('COUNT(DISTINCT orders.id) as total')
-                    ->join('order_items', 'orders.id = order_items.order_id')
-                    ->join('products', 'order_items.product_id = products.id')
-                    ->where('products.user_id', $userId)
-                    ->get()->getRow()->total;
-    }
-
-    public function getOrdersBySeller($userId)
-    {
-        return $this->select('orders.*, customers.name as customer_name')
-                    ->join('customers', 'customers.id = orders.customer_id', 'left')
-                    ->join('order_items', 'orders.id = order_items.order_id')
-                    ->join('products', 'order_items.product_id = products.id')
-                    ->where('products.user_id', $userId)
-                    ->groupBy('orders.id')
-                    ->orderBy('orders.created_at', 'DESC')
+        return $this->select('customer_orders.*, divisions.nama_divisi')
+                    ->join('divisions', 'divisions.id = customer_orders.division_id')
+                    ->orderBy('customer_orders.created_at', 'DESC')
                     ->findAll();
     }
 }
