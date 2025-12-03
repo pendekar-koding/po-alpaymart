@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #8b5cf6 100%);
             min-height: 100vh;
         }
         .product-container {
@@ -84,7 +84,7 @@
                 <a href="<?= base_url() ?>" class="btn btn-back me-3">
                     <i class="fas fa-arrow-left text-white"></i>
                 </a>
-                <h1 class="mb-0" style="background: linear-gradient(45deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;"><?= $product['name'] ?></h1>
+                <h1 class="mb-0" style="background: linear-gradient(45deg, #1e3a8a, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;"><?= $product['name'] ?></h1>
             </div>
             
             <div class="row">
@@ -98,6 +98,18 @@
                     <p><?= nl2br(htmlspecialchars($product['description'])) ?></p>
                 </div>
                 <?php endif; ?>
+                
+                <?php 
+                $settingModel = new \App\Models\SettingModel();
+                $donationAmount = (int) $settingModel->getSetting('donation_amount');
+                $donationDescription = $settingModel->getSetting('donation_description');
+                if ($donationAmount > 0): 
+                ?>
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-heart me-2"></i>
+                    <strong>Info Donasi:</strong> Harga sudah termasuk donasi sebesar Rp <?= number_format($donationAmount, 0, ',', '.') ?> untuk <?= $donationDescription ?>
+                </div>
+                <?php endif; ?>
 
                 <div class="mb-4">
                     <h5>Pilih Varian</h5>
@@ -108,7 +120,6 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <h6 class="mb-1"><?= $variant['variant_name'] ?></h6>
-                                        <small class="text-muted">SKU: <?= $variant['sku'] ?? '-' ?></small>
                                     </div>
                                     <div class="text-end">
                                         <div class="fw-bold text-primary">Rp <?= number_format($variant['price'], 0, ',', '.') ?></div>
@@ -149,8 +160,17 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<?= base_url('public/js/popup-alerts.js') ?>"></script>
+    <script src="<?= base_url('public/js/loading-overlay.js') ?>"></script>
     <script>
     function addToCart(variantId) {
+        // Wait for popup to be initialized
+        if (typeof popup === 'undefined') {
+            setTimeout(() => addToCart(variantId), 100);
+            return;
+        }
+        
+        showLoading();
         const quantity = document.getElementById('qty-' + variantId).value;
         
         fetch('<?= base_url('cart/add') ?>', {
@@ -162,15 +182,17 @@
         })
         .then(response => response.json())
         .then(data => {
+            hideLoading();
             if (data.success) {
-                alert('Produk berhasil ditambahkan ke keranjang!');
-                location.reload(); // Refresh untuk update cart count
+                popup.success('Produk berhasil ditambahkan ke keranjang!');
+                setTimeout(() => location.reload(), 1500);
             } else {
-                alert('Error: ' + data.message);
+                popup.error('Error: ' + data.message);
             }
         })
         .catch(error => {
-            alert('Terjadi kesalahan saat menambahkan ke keranjang');
+            hideLoading();
+            popup.error('Terjadi kesalahan saat menambahkan ke keranjang');
         });
     }
     </script>

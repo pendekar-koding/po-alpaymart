@@ -43,20 +43,24 @@ class ProductModel extends Model
 
     public function getActiveProducts()
     {
-        return $this->select('products.*, users.shop_name, MIN(product_variants.price) as min_price, MAX(product_variants.price) as max_price, COUNT(product_variants.id) as variant_count')
+        $products = $this->select('products.*, users.shop_name, MIN(product_variants.price) as min_price, MAX(product_variants.price) as max_price, COUNT(product_variants.id) as variant_count')
                     ->join('users', 'products.user_id = users.id', 'left')
                     ->join('product_variants', 'products.id = product_variants.product_id AND product_variants.status = "active"', 'left')
                     ->where('products.status', 'active')
+                    ->where('users.shop_status', 'open')
                     ->groupBy('products.id')
                     ->findAll();
+        
+        return $this->addDonationToProducts($products);
     }
 
     public function searchProducts($search)
     {
-        return $this->select('products.*, users.shop_name, MIN(product_variants.price) as min_price, MAX(product_variants.price) as max_price, COUNT(product_variants.id) as variant_count')
+        $products = $this->select('products.*, users.shop_name, MIN(product_variants.price) as min_price, MAX(product_variants.price) as max_price, COUNT(product_variants.id) as variant_count')
                     ->join('users', 'products.user_id = users.id', 'left')
                     ->join('product_variants', 'products.id = product_variants.product_id AND product_variants.status = "active"', 'left')
                     ->where('products.status', 'active')
+                    ->where('users.shop_status', 'open')
                     ->groupStart()
                         ->like('products.name', $search)
                         ->orLike('products.description', $search)
@@ -64,5 +68,26 @@ class ProductModel extends Model
                     ->groupEnd()
                     ->groupBy('products.id')
                     ->findAll();
+        
+        return $this->addDonationToProducts($products);
+    }
+    
+    private function addDonationToProducts($products)
+    {
+        $settingModel = new SettingModel();
+        $donationAmount = (int) $settingModel->getSetting('donation_amount');
+        
+        if ($donationAmount > 0) {
+            foreach ($products as &$product) {
+                if (isset($product['min_price'])) {
+                    $product['min_price'] += $donationAmount;
+                }
+                if (isset($product['max_price'])) {
+                    $product['max_price'] += $donationAmount;
+                }
+            }
+        }
+        
+        return $products;
     }
 }

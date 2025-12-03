@@ -54,9 +54,10 @@ class Orders extends BaseController
 
         $db = \Config\Database::connect();
         $orderItems = $db->table('customer_order_items')
-                        ->select('customer_order_items.*, product_variants.variant_name, products.name as product_name')
+                        ->select('customer_order_items.*, product_variants.variant_name, products.name as product_name, users.shop_name')
                         ->join('product_variants', 'product_variants.id = customer_order_items.product_variant_id')
                         ->join('products', 'products.id = product_variants.product_id')
+                        ->join('users', 'users.id = products.user_id')
                         ->where('order_id', $id)
                         ->get()->getResult();
 

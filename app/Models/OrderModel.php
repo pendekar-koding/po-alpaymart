@@ -28,4 +28,26 @@ class OrderModel extends Model
                     ->orderBy('customer_orders.created_at', 'DESC')
                     ->findAll();
     }
+
+    public function getOrderCountBySeller($userId)
+    {
+        return $this->join('customer_order_items', 'customer_order_items.order_id = customer_orders.id')
+                    ->join('product_variants', 'product_variants.id = customer_order_items.product_variant_id')
+                    ->join('products', 'products.id = product_variants.product_id')
+                    ->where('products.user_id', $userId)
+                    ->countAllResults();
+    }
+
+    public function getOrdersBySeller($userId)
+    {
+        return $this->select('customer_orders.*, divisions.nama_divisi')
+                    ->join('divisions', 'divisions.id = customer_orders.division_id')
+                    ->join('customer_order_items', 'customer_order_items.order_id = customer_orders.id')
+                    ->join('product_variants', 'product_variants.id = customer_order_items.product_variant_id')
+                    ->join('products', 'products.id = product_variants.product_id')
+                    ->where('products.user_id', $userId)
+                    ->groupBy('customer_orders.id')
+                    ->orderBy('customer_orders.created_at', 'DESC')
+                    ->findAll();
+    }
 }

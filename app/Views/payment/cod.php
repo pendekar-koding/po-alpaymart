@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #8b5cf6 100%);
             min-height: 100vh;
         }
         .payment-container {
@@ -38,10 +38,10 @@
             box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
         }
         .order-summary {
-            background: rgba(102, 126, 234, 0.1);
+            background: rgba(30, 58, 138, 0.1);
             border-radius: 15px;
             padding: 1.5rem;
-            border: 2px solid rgba(102, 126, 234, 0.2);
+            border: 2px solid rgba(30, 58, 138, 0.2);
         }
         .cod-icon {
             font-size: 4rem;
@@ -66,7 +66,7 @@
     <div class="container py-4">
         <div class="payment-container">
             <div class="text-center mb-4">
-                <h2 style="background: linear-gradient(45deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">
+                <h2 style="background: linear-gradient(45deg, #1e3a8a, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">
                     <i class="fas fa-money-bill me-2"></i>Pembayaran COD
                 </h2>
                 <p class="text-muted">Pesanan #<?= $order['order_number'] ?></p>
@@ -81,7 +81,7 @@
                         
                         <div class="alert alert-success">
                             <h6><i class="fas fa-check-circle me-2"></i>Pesanan Berhasil Dibuat!</h6>
-                            <p class="mb-0">Tim kami akan segera menghubungi Anda untuk konfirmasi dan pengiriman.</p>
+                            <p class="mb-0">Tim kami akan segera menghubungi Anda untuk konfirmasi.</p>
                         </div>
                     </div>
 
@@ -122,6 +122,13 @@
                         </div>
 
                         <hr>
+                        <?php if ($total_donation > 0): ?>
+                        <div class="d-flex justify-content-between text-muted small">
+                            <span><i class="fas fa-heart me-1"></i>Total Donasi:</span>
+                            <span>Rp <?= number_format($total_donation, 0, ',', '.') ?></span>
+                        </div>
+                        <small class="text-muted d-block mb-2"><?= $donation_description ?></small>
+                        <?php endif; ?>
                         <div class="d-flex justify-content-between">
                             <strong>Total yang Harus Dibayar:</strong>
                             <strong style="color: #28a745; font-size: 1.2em;">Rp <?= number_format($order['total_amount'], 0, ',', '.') ?></strong>
@@ -143,13 +150,24 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="<?= base_url('public/js/popup-alerts.js') ?>"></script>
+    <script src="<?= base_url('public/js/loading-overlay.js') ?>"></script>
     <script>
         function takeScreenshot() {
+            // Wait for popup to be initialized
+            if (typeof popup === 'undefined') {
+                setTimeout(takeScreenshot, 100);
+                return;
+            }
+            popup.info('Sedang memproses screenshot...', 'Mohon Tunggu');
             html2canvas(document.querySelector('.payment-container')).then(canvas => {
                 const link = document.createElement('a');
                 link.download = 'COD-Pesanan-<?= $order['order_number'] ?>.png';
                 link.href = canvas.toDataURL();
                 link.click();
+                popup.success('Screenshot berhasil diunduh!', 'Berhasil');
+            }).catch(error => {
+                popup.error('Gagal membuat screenshot. Silakan coba lagi.', 'Error');
             });
         }
     </script>

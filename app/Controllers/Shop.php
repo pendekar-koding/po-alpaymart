@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\ProductModel;
 use App\Models\ProductVariantModel;
+use App\Models\SettingModel;
 
 class Shop extends BaseController
 {
@@ -40,6 +41,15 @@ class Shop extends BaseController
         $variants = $this->variantModel->where('product_id', $id)
                                       ->where('status', 'active')
                                       ->findAll();
+        
+        // Add donation to variant prices
+        $settingModel = new SettingModel();
+        $donationAmount = (int) $settingModel->getSetting('donation_amount');
+        if ($donationAmount > 0) {
+            foreach ($variants as &$variant) {
+                $variant['price'] += $donationAmount;
+            }
+        }
 
         $cart = session()->get('cart') ?? [];
         $cartCount = array_sum(array_column($cart, 'quantity'));

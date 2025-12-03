@@ -76,7 +76,8 @@ class Users extends BaseController
             'full_name' => $this->request->getPost('full_name'),
             'shop_name' => $this->request->getPost('shop_name'),
             'role' => $this->request->getPost('role'),
-            'status' => $this->request->getPost('status')
+            'status' => $this->request->getPost('status'),
+            'shop_status' => $this->request->getPost('shop_status')
         ];
 
         $password = $this->request->getPost('password');
@@ -96,5 +97,21 @@ class Users extends BaseController
             return redirect()->to('/admin/users')->with('success', 'User berhasil dihapus');
         }
         return redirect()->back()->with('error', 'Gagal menghapus user');
+    }
+    
+    public function toggleShopStatus()
+    {
+        if (!session()->get('user_logged_in') || session()->get('role') !== 'admin') {
+            return $this->response->setJSON(['success' => false, 'message' => 'Unauthorized']);
+        }
+        
+        $userId = $this->request->getPost('user_id');
+        $shopStatus = $this->request->getPost('shop_status');
+        
+        if ($this->userModel->update($userId, ['shop_status' => $shopStatus])) {
+            return $this->response->setJSON(['success' => true]);
+        }
+        
+        return $this->response->setJSON(['success' => false, 'message' => 'Gagal mengubah status']);
     }
 }

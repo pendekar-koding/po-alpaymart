@@ -47,7 +47,7 @@
                         <a href="<?= base_url('admin/products/edit/' . $product['id']) ?>" class="btn btn-sm btn-warning">Edit</a>
                         <a href="<?= base_url('admin/products/delete/' . $product['id']) ?>" 
                            class="btn btn-sm btn-danger" 
-                           onclick="return confirm('Yakin ingin menghapus produk ini?')">Hapus</a>
+                           onclick="return confirmDelete(event, 'produk ini')">Hapus</a>
                         <?php else: ?>
                         <span class="text-muted">View Only</span>
                         <?php endif; ?>

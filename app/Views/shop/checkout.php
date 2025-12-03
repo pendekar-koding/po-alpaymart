@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #8b5cf6 100%);
             min-height: 100vh;
         }
         .checkout-container {
@@ -50,14 +50,14 @@
             padding: 0.75rem 1rem;
         }
         .form-control:focus, .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            border-color: #1e3a8a;
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
         }
         .order-summary {
-            background: rgba(102, 126, 234, 0.1);
+            background: rgba(30, 58, 138, 0.1);
             border-radius: 15px;
             padding: 1.5rem;
-            border: 2px solid rgba(102, 126, 234, 0.2);
+            border: 2px solid rgba(30, 58, 138, 0.2);
         }
     </style>
 </head>
@@ -68,7 +68,7 @@
                 <a href="<?= base_url('cart') ?>" class="btn btn-back me-3">
                     <i class="fas fa-arrow-left text-white"></i>
                 </a>
-                <h2 class="mb-0" style="background: linear-gradient(45deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">Checkout</h2>
+                <h2 class="mb-0" style="background: linear-gradient(45deg, #1e3a8a, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">Checkout</h2>
             </div>
 
             <?php if (session()->getFlashdata('errors')): ?>
@@ -145,6 +145,13 @@
                             </div>
                         <?php endforeach; ?>
                         <hr>
+                        <?php if ($total_donation > 0): ?>
+                        <div class="d-flex justify-content-between text-muted small">
+                            <span><i class="fas fa-heart me-1"></i>Total Donasi:</span>
+                            <span>Rp <?= number_format($total_donation, 0, ',', '.') ?></span>
+                        </div>
+                        <small class="text-muted d-block mb-2"><?= $donation_description ?></small>
+                        <?php endif; ?>
                         <div class="d-flex justify-content-between">
                             <strong>Total:</strong>
                             <strong style="color: #28a745;">Rp <?= number_format($total, 0, ',', '.') ?></strong>
@@ -156,5 +163,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<?= base_url('public/js/loading-overlay.js') ?>"></script>
 </body>
 </html>

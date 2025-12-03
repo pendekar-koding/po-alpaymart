@@ -18,7 +18,13 @@
               </tr>
               <tr>
                 <td><strong>WhatsApp:</strong></td>
-                <td><?= $order['customer_whatsapp'] ?></td>
+                <td>
+                  <?= $order['customer_whatsapp'] ?>
+                  <a href="https://wa.me/<?= preg_replace('/^0/', '62', $order['customer_whatsapp']) ?>?text=Assalamu'alaikum%20<?= urlencode($order['customer_name']) ?>,%20terkait%20pesanan%20<?= $order['order_number'] ?>"
+                     target="_blank" class="btn btn-success btn-sm ml-2">
+                    <i class="fab fa-whatsapp"></i>
+                  </a>
+                </td>
               </tr>
               <tr>
                 <td><strong>Divisi:</strong></td>
@@ -58,6 +64,7 @@
           <thead>
             <tr>
               <th>Produk</th>
+              <th>Toko</th>
               <th>Qty</th>
               <th>Harga</th>
               <th>Subtotal</th>
@@ -67,6 +74,7 @@
             <?php foreach ($order_items as $item): ?>
             <tr>
               <td><?= $item->product_name ?> - <?= $item->variant_name ?></td>
+              <td><?= $item->shop_name ?? '-' ?></td>
               <td><?= $item->quantity ?></td>
               <td>Rp <?= number_format($item->price, 0, ',', '.') ?></td>
               <td>Rp <?= number_format($item->subtotal, 0, ',', '.') ?></td>

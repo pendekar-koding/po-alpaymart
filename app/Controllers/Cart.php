@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\ProductVariantModel;
+use App\Models\SettingModel;
 
 class Cart extends BaseController
 {
@@ -21,6 +22,11 @@ class Cart extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Stok tidak mencukupi']);
         }
         
+        // Add donation to price
+        $settingModel = new SettingModel();
+        $donationAmount = (int) $settingModel->getSetting('donation_amount');
+        $finalPrice = $variant['price'] + $donationAmount;
+        
         $cart = session()->get('cart') ?? [];
         
         if (isset($cart[$variantId])) {
@@ -30,7 +36,7 @@ class Cart extends BaseController
                 'variant_id' => $variantId,
                 'product_name' => $variant['product_name'],
                 'variant_name' => $variant['variant_name'],
-                'price' => $variant['price'],
+                'price' => $finalPrice,
                 'quantity' => $quantity
             ];
         }
@@ -44,8 +50,11 @@ class Cart extends BaseController
     {
         $cart = session()->get('cart') ?? [];
         
-        // Enrich cart data with product names
+        // Enrich cart data and ensure prices include donation
         $variantModel = new ProductVariantModel();
+        $settingModel = new SettingModel();
+        $donationAmount = (int) $settingModel->getSetting('donation_amount');
+        
         foreach ($cart as $key => $item) {
             if (!isset($item['product_name'])) {
                 $variant = $variantModel->select('product_variants.*, products.name as product_name')
@@ -54,6 +63,7 @@ class Cart extends BaseController
                                         ->first();
                 if ($variant) {
                     $cart[$key]['product_name'] = $variant['product_name'];
+                    $cart[$key]['price'] = $variant['price'] + $donationAmount;
                 }
             }
         }
@@ -61,7 +71,11 @@ class Cart extends BaseController
         // Update session with enriched data
         session()->set('cart', $cart);
         
-        $data = ['cart' => $cart];
+        $data = [
+            'cart' => $cart,
+            'donation_amount' => $donationAmount,
+            'donation_description' => $settingModel->getSetting('donation_description')
+        ];
         return view('shop/cart', $data);
     }
     

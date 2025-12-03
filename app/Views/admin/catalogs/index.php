@@ -48,7 +48,7 @@
                                     <a href="<?= base_url('admin/catalogs/edit/' . $catalog['id']) ?>" class="btn btn-sm btn-warning">Edit</a>
                                     <a href="<?= base_url('admin/catalogs/delete/' . $catalog['id']) ?>" 
                                        class="btn btn-sm btn-danger" 
-                                       onclick="return confirm('Yakin ingin menghapus katalog ini?')">Hapus</a>
+                                       onclick="return confirmDelete(event, 'katalog ini')">Hapus</a>
                                 </td>
                             </tr>
                             <?php endforeach; ?>

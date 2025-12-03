@@ -53,12 +53,22 @@
             </a>
           </li>
 
+          <?php if (session()->get('role') === 'admin'): ?>
           <li class="nav-item">
             <a href="<?= base_url('admin/orders') ?>" class="nav-link">
               <i class="nav-icon fas fa-shopping-cart"></i>
               <p>Pesanan</p>
             </a>
           </li>
+          <?php endif; ?>
+          <?php if (session()->get('role') === 'seller'): ?>
+          <li class="nav-item">
+            <a href="<?= base_url('admin/seller-settings') ?>" class="nav-link">
+              <i class="nav-icon fas fa-store"></i>
+              <p>Pengaturan Toko</p>
+            </a>
+          </li>
+          <?php endif; ?>
           <?php if (session()->get('role') === 'admin'): ?>
           <li class="nav-item">
             <a href="<?= base_url('admin/catalogs') ?>" class="nav-link">
@@ -76,6 +86,12 @@
             <a href="<?= base_url('admin/divisions') ?>" class="nav-link">
               <i class="nav-icon fas fa-sitemap"></i>
               <p>Divisi</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="<?= base_url('admin/settings') ?>" class="nav-link">
+              <i class="nav-icon fas fa-cog"></i>
+              <p>Pengaturan</p>
             </a>
           </li>
           <?php endif; ?>
@@ -114,5 +130,30 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/js/adminlte.min.js"></script>
+<script src="<?= base_url('public/js/popup-alerts.js') ?>"></script>
+<script src="<?= base_url('public/js/loading-overlay.js') ?>"></script>
+<script>
+// Function untuk konfirmasi delete dengan popup
+async function confirmDelete(event, itemName) {
+    event.preventDefault();
+    // Wait for popup to be initialized
+    if (typeof popup === 'undefined') {
+        setTimeout(() => confirmDelete(event, itemName), 100);
+        return false;
+    }
+    const confirmed = await popup.confirm(`Yakin ingin menghapus ${itemName}?`, 'Konfirmasi Hapus');
+    if (confirmed) {
+        window.location.href = event.target.href;
+    }
+    return false;
+}
+
+// Auto show success message as popup
+<?php if (session()->getFlashdata('success')): ?>
+$(document).ready(function() {
+    popup.success('<?= addslashes(session()->getFlashdata('success')) ?>');
+});
+<?php endif; ?>
+</script>
 </body>
 </html>

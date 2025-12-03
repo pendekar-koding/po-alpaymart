@@ -32,21 +32,17 @@
         <div id="variants-container">
             <div class="variant-item border p-3 mb-3">
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="form-label">Nama Varian</label>
                         <input type="text" class="form-control" name="variants[0][variant_name]" placeholder="Rasa Original">
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label class="form-label">Harga</label>
                         <input type="number" class="form-control" name="variants[0][price]" step="0.01">
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label class="form-label">Stok</label>
                         <input type="number" class="form-control" name="variants[0][stock]" value="0">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">SKU</label>
-                        <input type="text" class="form-control" name="variants[0][sku]" placeholder="PRD-001-ORI">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">&nbsp;</label>
@@ -76,21 +72,17 @@ document.getElementById('add-variant').addEventListener('click', function() {
     const newVariant = `
         <div class="variant-item border p-3 mb-3">
             <div class="row">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label">Nama Varian</label>
                     <input type="text" class="form-control" name="variants[${variantIndex}][variant_name]" placeholder="Rasa Coklat">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <label class="form-label">Harga</label>
                     <input type="number" class="form-control" name="variants[${variantIndex}][price]" step="0.01">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <label class="form-label">Stok</label>
                     <input type="number" class="form-control" name="variants[${variantIndex}][stock]" value="0">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">SKU</label>
-                    <input type="text" class="form-control" name="variants[${variantIndex}][sku]" placeholder="PRD-001-CHO">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">&nbsp;</label>

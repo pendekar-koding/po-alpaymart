@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\DivisionModel;
 use App\Models\OrderModel;
 use App\Models\OrderItemModel;
+use App\Models\SettingModel;
 
 class Checkout extends BaseController
 {
@@ -46,10 +47,18 @@ class Checkout extends BaseController
         $data['divisions'] = $this->divisionModel->findAll();
         
         $total = 0;
+        $totalDonation = 0;
+        $settingModel = new SettingModel();
+        $donationAmount = (int) $settingModel->getSetting('donation_amount');
+        
         foreach ($cart as $item) {
             $total += $item['price'] * $item['quantity'];
+            $totalDonation += $donationAmount * $item['quantity'];
         }
+        
         $data['total'] = $total;
+        $data['total_donation'] = $totalDonation;
+        $data['donation_description'] = $settingModel->getSetting('donation_description');
 
         return view('shop/checkout', $data);
     }
@@ -59,6 +68,31 @@ class Checkout extends BaseController
         $cart = session()->get('cart') ?? [];
         if (empty($cart)) {
             return redirect()->to('/cart')->with('error', 'Keranjang kosong');
+        }
+        
+        // Check if any shop is closed
+        $variantModel = new \App\Models\ProductVariantModel();
+        $userModel = new \App\Models\UserModel();
+        $closedShops = [];
+        
+        foreach ($cart as $key => $item) {
+            $variant = $variantModel->select('product_variants.*, products.name as product_name, products.user_id')
+                                   ->join('products', 'products.id = product_variants.product_id')
+                                   ->where('product_variants.id', $item['variant_id'])
+                                   ->first();
+            if ($variant) {
+                $user = $userModel->find($variant['user_id']);
+                if ($user && $user['shop_status'] === 'closed') {
+                    $closedShops[] = $user['shop_name'];
+                    unset($cart[$key]);
+                }
+            }
+        }
+        
+        if (!empty($closedShops)) {
+            session()->set('cart', $cart);
+            $message = 'Toko berikut sedang tutup dan produknya telah dihapus dari keranjang: ' . implode(', ', array_unique($closedShops));
+            return redirect()->to('/cart')->with('error', $message);
         }
 
         $validation = \Config\Services::validation();

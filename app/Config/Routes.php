@@ -35,6 +35,7 @@ $routes->group('admin', function($routes) {
     $routes->get('users/edit/(:num)', 'Admin\Users::edit/$1');
     $routes->post('users/update/(:num)', 'Admin\Users::update/$1');
     $routes->get('users/delete/(:num)', 'Admin\Users::delete/$1');
+    $routes->post('users/toggle-shop-status', 'Admin\Users::toggleShopStatus');
     
     // Catalogs (Admin only)
     $routes->get('catalogs', 'Admin\Catalogs::index');
@@ -52,6 +53,14 @@ $routes->group('admin', function($routes) {
     $routes->get('divisions/edit/(:num)', 'Admin\Divisions::edit/$1');
     $routes->post('divisions/update/(:num)', 'Admin\Divisions::update/$1');
     $routes->get('divisions/delete/(:num)', 'Admin\Divisions::delete/$1');
+    
+    // Settings (Admin only)
+    $routes->get('settings', 'Admin\Settings::index');
+    $routes->post('settings/update', 'Admin\Settings::update');
+    
+    // Seller Settings (Seller only)
+    $routes->get('seller-settings', 'Admin\SellerSettings::index');
+    $routes->post('seller-settings/update', 'Admin\SellerSettings::update');
 });
 
 // Customer Routes

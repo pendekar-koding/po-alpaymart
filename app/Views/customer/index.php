@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #8b5cf6 100%);
             min-height: 100vh;
         }
         .welcome-section {
@@ -70,10 +70,21 @@
 <body>
     <!-- Floating Download Button -->
     <?php if (!empty($catalogs)): ?>
-    <a href="<?= base_url('catalog/download/' . $catalogs[0]['id']) ?>" class="btn btn-download" style="position: fixed; bottom: 150px; right: 20px; z-index: 1000; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);">
+    <a href="<?= base_url('catalog/download/' . $catalogs[0]['id']) ?>" class="btn btn-download" style="position: fixed; bottom: 220px; right: 20px; z-index: 1000; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);">
         <i class="fas fa-download fa-lg text-white"></i>
     </a>
     <?php endif; ?>
+    
+    <!-- Floating WhatsApp Button -->
+    <?php 
+    $settingModel = new \App\Models\SettingModel();
+    $adminWhatsapp = $settingModel->getSetting('admin_whatsapp');
+    ?>
+    <a href="https://wa.me/<?= $adminWhatsapp ?>?text=Halo%20Admin%20Alpaymart,%20saya%20ingin%20bertanya" 
+       target="_blank" class="btn" 
+       style="position: fixed; bottom: 150px; right: 20px; z-index: 1000; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #25d366; box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);">
+        <i class="fab fa-whatsapp fa-lg text-white"></i>
+    </a>
     
     <!-- Floating Cart Button -->
     <a href="<?= base_url('cart') ?>" class="btn floating-cart" style="position: fixed; bottom: 80px; right: 20px; z-index: 1000; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
@@ -86,16 +97,28 @@
     <div class="container py-4" style="padding-bottom: 80px;">
         <!-- Welcome Section -->
         <div class="text-center mb-5 welcome-section">
-            <h1 class="display-4 mb-3" style="background: linear-gradient(45deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">Selamat Datang di ALPAYMART</h1>
+            <h1 class="display-4 mb-3" style="background: linear-gradient(45deg, #1e3a8a, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">Selamat Datang di ALPAYMART</h1>
             <p class="lead" style="color: #6c757d; font-weight: 500;">Berbelanja sekaligus berdonasi</p>
+            
+            <?php 
+            $settingModel = new \App\Models\SettingModel();
+            $donationAmount = (int) $settingModel->getSetting('donation_amount');
+            $donationDescription = $settingModel->getSetting('donation_description');
+            if ($donationAmount > 0): 
+            ?>
+            <div class="alert alert-success" style="border-radius: 15px; border: none; background: linear-gradient(45deg, #1e3a8a, #8b5cf6); color: white;">
+                <i class="fas fa-heart me-2"></i>
+                <strong>Info Donasi:</strong> Setiap pembelian produk sudah termasuk donasi sebesar Rp <?= number_format($donationAmount, 0, ',', '.') ?> untuk <?= $donationDescription ?>
+            </div>
+            <?php endif; ?>
             
             <!-- Search Form -->
             <form method="GET" action="<?= base_url() ?>" class="mt-4">
                 <div class="row justify-content-center">
                     <div class="col-md-6">
                         <div class="input-group">
-                            <input type="text" class="form-control" name="search" placeholder="Cari produk atau nama toko..." value="<?= $search ?? '' ?>" style="border-radius: 25px 0 0 25px; border: 2px solid #667eea;">
-                            <button class="btn" type="submit" style="background: linear-gradient(45deg, #667eea, #764ba2); border: 2px solid #667eea; border-radius: 0 25px 25px 0; color: white;">
+                            <input type="text" class="form-control" name="search" placeholder="Cari produk atau nama toko..." value="<?= $search ?? '' ?>" style="border-radius: 25px 0 0 25px; border: 2px solid #1e3a8a;">
+                            <button class="btn" type="submit" style="background: linear-gradient(45deg, #1e3a8a, #8b5cf6); border: 2px solid #1e3a8a; border-radius: 0 25px 25px 0; color: white;">
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
@@ -105,7 +128,7 @@
             
             <?php if (!empty($search)): ?>
             <div class="mt-3">
-                <span class="badge" style="background: linear-gradient(45deg, #667eea, #764ba2); color: white; padding: 0.5rem 1rem; border-radius: 15px;">
+                <span class="badge" style="background: linear-gradient(45deg, #1e3a8a, #8b5cf6); color: white; padding: 0.5rem 1rem; border-radius: 15px;">
                     Hasil pencarian: "<?= htmlspecialchars($search) ?>"
                 </span>
                 <a href="<?= base_url() ?>" class="btn btn-sm btn-outline-secondary ms-2" style="border-radius: 15px;">Reset</a>
@@ -137,7 +160,7 @@
                             </p>
                         </div>
                         <div class="card-footer" style="background: transparent; border: none;">
-                            <a href="<?= base_url('product/' . $product['id']) ?>" class="btn btn-detail text-white btn-sm w-100">
+                            <a href="<?= base_url('product/' . $product['id']) ?>" class="btn btn-detail text-white btn-sm w-100" data-loading>
                                 <i class="fas fa-eye me-2"></i>Lihat Detail
                             </a>
                         </div>
@@ -160,7 +183,7 @@
     </div>
 
     <!-- Footer -->
-    <footer class="text-white py-3" style="position: fixed; bottom: 0; width: 100%; z-index: 999; background: linear-gradient(45deg, #667eea, #764ba2);">
+    <footer class="text-white py-3" style="position: fixed; bottom: 0; width: 100%; z-index: 999; background: linear-gradient(45deg, #1e3a8a, #8b5cf6);">
         <div class="container">
             <div class="text-center">
                 <p class="mb-0" style="font-weight: 500;">&copy; 2025 Alpaymart. All rights reserved.</p>
@@ -169,5 +192,6 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<?= base_url('public/js/loading-overlay.js') ?>"></script>
 </body>
 </html>

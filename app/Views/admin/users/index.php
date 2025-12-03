@@ -21,6 +21,7 @@
                                 <th>Nama Toko</th>
                                 <th>Role</th>
                                 <th>Status</th>
+                                <th>Status Toko</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -42,11 +43,21 @@
                                     </span>
                                 </td>
                                 <td>
+                                    <?php if ($user['role'] === 'seller'): ?>
+                                    <button class="btn btn-sm <?= ($user['shop_status'] ?? 'open') == 'open' ? 'btn-success' : 'btn-danger' ?>" 
+                                            onclick="toggleShopStatus(<?= $user['id'] ?>, '<?= ($user['shop_status'] ?? 'open') == 'open' ? 'closed' : 'open' ?>')">
+                                        <?= ($user['shop_status'] ?? 'open') == 'open' ? 'Buka' : 'Tutup' ?>
+                                    </button>
+                                    <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
                                     <a href="<?= base_url('admin/users/edit/' . $user['id']) ?>" class="btn btn-sm btn-warning">Edit</a>
                                     <?php if ($user['id'] != session()->get('user_id')): ?>
                                     <a href="<?= base_url('admin/users/delete/' . $user['id']) ?>" 
                                        class="btn btn-sm btn-danger" 
-                                       onclick="return confirm('Yakin ingin menghapus user ini?')">Hapus</a>
+                                       onclick="return confirmDelete(event, 'user ini')">Hapus</a>
                                     <?php endif; ?>
                                 </td>
                             </tr>
@@ -64,4 +75,29 @@
         </div>
     </div>
 </div>
+<script>
+function toggleShopStatus(userId, newStatus) {
+    showLoading();
+    fetch('<?= base_url('admin/users/toggle-shop-status') ?>', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'user_id=' + userId + '&shop_status=' + newStatus
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            location.reload();
+        } else {
+            popup.error(data.message || 'Gagal mengubah status toko');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        popup.error('Terjadi kesalahan');
+    });
+}
+</script>
 <?= $this->endSection() ?>

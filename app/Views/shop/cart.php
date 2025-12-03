@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #8b5cf6 100%);
             min-height: 100vh;
         }
         .cart-container {
@@ -103,14 +103,14 @@
                 <a href="<?= base_url() ?>" class="btn btn-back me-3">
                     <i class="fas fa-arrow-left text-white"></i>
                 </a>
-                <h2 class="mb-0" style="background: linear-gradient(45deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">Keranjang Belanja</h2>
+                <h2 class="mb-0" style="background: linear-gradient(45deg, #1e3a8a, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">Keranjang Belanja</h2>
             </div>
         
         <?php if (!empty($cart)): ?>
             <!-- Desktop Table View -->
             <div class="table-responsive cart-table">
                 <table class="table table-hover mb-0">
-                    <thead style="background: linear-gradient(45deg, #667eea, #764ba2); color: white;">
+                    <thead style="background: linear-gradient(45deg, #1e3a8a, #8b5cf6); color: white;">
                         <tr>
                             <th style="border: none; padding: 1rem;"><i class="fas fa-box me-2"></i>Produk</th>
                             <th style="border: none; padding: 1rem;"><i class="fas fa-tags me-2"></i>Varian</th>
@@ -132,7 +132,7 @@
                             <td style="padding: 1rem; color: #6c757d;"><?= $item['variant_name'] ?></td>
                             <td style="padding: 1rem; color: #28a745; font-weight: 500;">Rp <?= number_format($item['price'], 0, ',', '.') ?></td>
                             <td style="padding: 1rem;">
-                                <span class="badge" style="background: linear-gradient(45deg, #667eea, #764ba2); padding: 0.5rem 1rem; border-radius: 15px;"><?= $item['quantity'] ?></span>
+                                <span class="badge" style="background: linear-gradient(45deg, #1e3a8a, #8b5cf6); padding: 0.5rem 1rem; border-radius: 15px;"><?= $item['quantity'] ?></span>
                             </td>
                             <td style="padding: 1rem; color: #28a745; font-weight: 600; font-size: 1.1em;">Rp <?= number_format($subtotal, 0, ',', '.') ?></td>
                             <td style="padding: 1rem;">
@@ -143,7 +143,7 @@
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
-                    <tfoot style="background: rgba(102, 126, 234, 0.1);">
+                    <tfoot style="background: rgba(30, 58, 138, 0.1);">
                         <tr>
                             <th colspan="5" style="padding: 1.5rem; font-size: 1.2em; color: #495057;">Total Pembayaran</th>
                             <th style="padding: 1.5rem; font-size: 1.3em; color: #28a745; font-weight: bold;">Rp <?= number_format($total, 0, ',', '.') ?></th>
@@ -167,7 +167,7 @@
                             <small class="text-muted"><?= $item['variant_name'] ?></small>
                         </div>
                         <div class="d-flex align-items-center gap-2">
-                            <span class="badge" style="background: linear-gradient(45deg, #667eea, #764ba2); padding: 0.4rem 0.8rem; border-radius: 12px;">x<?= $item['quantity'] ?></span>
+                            <span class="badge" style="background: linear-gradient(45deg, #1e3a8a, #8b5cf6); padding: 0.4rem 0.8rem; border-radius: 12px;">x<?= $item['quantity'] ?></span>
                             <button class="btn btn-sm btn-danger" onclick="removeFromCart(<?= $item['variant_id'] ?>)" title="Hapus dari keranjang">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -187,7 +187,7 @@
                 <?php endforeach; ?>
                 
                 <!-- Total Card -->
-                <div class="cart-item-card" style="background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border: 2px solid rgba(102, 126, 234, 0.2);">
+                <div class="cart-item-card" style="background: linear-gradient(45deg, rgba(30, 58, 138, 0.1), rgba(139, 92, 246, 0.1)); border: 2px solid rgba(30, 58, 138, 0.2);">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0" style="color: #495057; font-weight: bold;"><i class="fas fa-receipt me-2"></i>Total Pembayaran</h5>
                         <h4 class="mb-0" style="color: #28a745; font-weight: bold;">Rp <?= number_format($total, 0, ',', '.') ?></h4>
@@ -195,8 +195,15 @@
                 </div>
             </div>
             
+            <?php if ($donation_amount > 0): ?>
+            <div class="alert alert-info mt-4">
+                <i class="fas fa-heart me-2"></i>
+                <strong>Info Donasi:</strong> Harga sudah termasuk donasi sebesar Rp <?= number_format($donation_amount, 0, ',', '.') ?> per produk untuk <?= $donation_description ?>
+            </div>
+            <?php endif; ?>
+            
             <div class="text-end mt-4">
-                <a href="<?= base_url('checkout') ?>" class="btn btn-checkout text-white">
+                <a href="<?= base_url('checkout') ?>" class="btn btn-checkout text-white" data-loading>
                     <i class="fas fa-credit-card me-2"></i>Checkout Sekarang
                 </a>
             </div>
@@ -214,9 +221,18 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<?= base_url('public/js/popup-alerts.js') ?>"></script>
+    <script src="<?= base_url('public/js/loading-overlay.js') ?>"></script>
     <script>
-        function removeFromCart(variantId) {
-            if (confirm('Apakah Anda yakin ingin menghapus produk ini dari keranjang?')) {
+        async function removeFromCart(variantId) {
+            // Wait for popup to be initialized
+            if (typeof popup === 'undefined') {
+                setTimeout(() => removeFromCart(variantId), 100);
+                return;
+            }
+            const confirmed = await popup.confirm('Apakah Anda yakin ingin menghapus produk ini dari keranjang?', 'Konfirmasi Hapus');
+            if (confirmed) {
+                showLoading();
                 fetch('<?= base_url('cart/remove') ?>', {
                     method: 'POST',
                     headers: {
@@ -227,15 +243,18 @@
                 })
                 .then(response => response.json())
                 .then(data => {
+                    hideLoading();
                     if (data.success) {
-                        location.reload();
+                        popup.success('Produk berhasil dihapus dari keranjang!');
+                        setTimeout(() => location.reload(), 1500);
                     } else {
-                        alert(data.message);
+                        popup.error(data.message);
                     }
                 })
                 .catch(error => {
+                    hideLoading();
                     console.error('Error:', error);
-                    alert('Terjadi kesalahan saat menghapus produk');
+                    popup.error('Terjadi kesalahan saat menghapus produk');
                 });
             }
         }

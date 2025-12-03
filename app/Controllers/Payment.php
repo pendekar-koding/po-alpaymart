@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\OrderModel;
 use App\Models\OrderItemModel;
 use App\Models\DivisionModel;
+use App\Models\SettingModel;
 
 class Payment extends BaseController
 {
@@ -36,11 +37,21 @@ class Payment extends BaseController
 
         // Get division name
         $division = $this->divisionModel->find($order['division_id']);
+        
+        // Calculate donation info
+        $settingModel = new SettingModel();
+        $donationAmount = (int) $settingModel->getSetting('donation_amount');
+        $totalDonation = 0;
+        foreach ($orderItems as $item) {
+            $totalDonation += $donationAmount * $item['quantity'];
+        }
 
         $data = [
             'order' => $order,
             'orderItems' => $orderItems,
-            'division' => $division
+            'division' => $division,
+            'total_donation' => $totalDonation,
+            'donation_description' => $settingModel->getSetting('donation_description')
         ];
 
         if ($order['payment_method'] === 'QRIS') {

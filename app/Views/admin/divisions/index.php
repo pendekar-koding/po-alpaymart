@@ -41,7 +41,7 @@
                                 </a>
                                 <a href="<?= base_url('admin/divisions/delete/' . $division['id']) ?>" 
                                    class="btn btn-sm btn-danger" 
-                                   onclick="return confirm('Yakin ingin menghapus divisi ini?')">
+                                   onclick="return confirmDelete(event, 'divisi ini')">
                                     <i class="fas fa-trash"></i> Hapus
                                 </a>
                             </td>

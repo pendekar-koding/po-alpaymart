@@ -61,6 +61,15 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Status Toko</label>
+                                <select class="form-control" name="shop_status" required>
+                                    <option value="open" <?= ($user['shop_status'] ?? 'open') == 'open' ? 'selected' : '' ?>>Buka</option>
+                                    <option value="closed" <?= ($user['shop_status'] ?? 'open') == 'closed' ? 'selected' : '' ?>>Tutup</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="mb-3">
