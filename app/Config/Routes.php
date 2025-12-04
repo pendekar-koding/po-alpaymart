@@ -18,6 +18,7 @@ $routes->group('admin', function($routes) {
     $routes->get('products', 'Admin\Products::index');
     $routes->get('products/create', 'Admin\Products::create');
     $routes->post('products/store', 'Admin\Products::store');
+    $routes->get('products/view/(:num)', 'Admin\Products::view/$1');
     $routes->get('products/edit/(:num)', 'Admin\Products::edit/$1');
     $routes->post('products/update/(:num)', 'Admin\Products::update/$1');
     $routes->get('products/delete/(:num)', 'Admin\Products::delete/$1');
@@ -27,6 +28,8 @@ $routes->group('admin', function($routes) {
     $routes->get('orders', 'Admin\Orders::index');
     $routes->get('orders/view/(:num)', 'Admin\Orders::view/$1');
     $routes->post('orders/update-status/(:num)', 'Admin\Orders::updateStatus/$1');
+    $routes->get('orders/delete/(:num)', 'Admin\Orders::delete/$1');
+    $routes->get('orders/delete-all', 'Admin\Orders::deleteAll');
     
     // Users (Admin only)
     $routes->get('users', 'Admin\Users::index');

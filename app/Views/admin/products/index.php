@@ -43,13 +43,12 @@
                         </span>
                     </td>
                     <td>
+                        <a href="<?= base_url('admin/products/view/' . $product['id']) ?>" class="btn btn-sm btn-info">Detail</a>
                         <?php if (session()->get('role') === 'seller'): ?>
                         <a href="<?= base_url('admin/products/edit/' . $product['id']) ?>" class="btn btn-sm btn-warning">Edit</a>
                         <a href="<?= base_url('admin/products/delete/' . $product['id']) ?>" 
                            class="btn btn-sm btn-danger" 
                            onclick="return confirmDelete(event, 'produk ini')">Hapus</a>
-                        <?php else: ?>
-                        <span class="text-muted">View Only</span>
                         <?php endif; ?>
                     </td>
                 </tr>

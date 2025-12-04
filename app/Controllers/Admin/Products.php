@@ -138,6 +138,26 @@ class Products extends BaseController
         return redirect()->to('/admin/products')->with('success', 'Produk berhasil diupdate');
     }
 
+    public function view($id)
+    {
+        if (!session()->get('user_logged_in')) {
+            return redirect()->to('/admin/login');
+        }
+
+        $product = $this->productModel->getProductWithVariants($id);
+        
+        if (!$product) {
+            return redirect()->to('/admin/products')->with('error', 'Produk tidak ditemukan');
+        }
+
+        $data = [
+            'product' => $product,
+            'title' => 'Detail Produk'
+        ];
+
+        return view('admin/products/view', $data);
+    }
+
     public function delete($id)
     {
         $product = $this->productModel->find($id);

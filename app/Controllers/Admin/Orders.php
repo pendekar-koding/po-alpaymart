@@ -22,15 +22,17 @@ class Orders extends BaseController
 
         $userId = session()->get('user_id');
         $role = session()->get('role');
+        $search = $this->request->getGet('search');
 
         if ($role === 'seller') {
-            $orders = $this->orderModel->getOrdersBySeller($userId);
+            $orders = $this->orderModel->getOrdersBySeller($userId, $search);
         } else {
-            $orders = $this->orderModel->getOrdersWithCustomer();
+            $orders = $this->orderModel->getOrdersWithCustomer($search);
         }
 
         $data = [
             'orders' => $orders,
+            'search' => $search,
             'title' => 'Pesanan'
         ];
 
@@ -75,5 +77,31 @@ class Orders extends BaseController
         $this->orderModel->update($id, ['status' => $status]);
         
         return redirect()->back()->with('success', 'Status order berhasil diupdate');
+    }
+
+    public function delete($id)
+    {
+        if (!session()->get('user_logged_in') || session()->get('role') !== 'admin') {
+            return redirect()->to('/admin/orders')->with('error', 'Akses ditolak');
+        }
+
+        $db = \Config\Database::connect();
+        $db->table('customer_order_items')->where('order_id', $id)->delete();
+        $this->orderModel->delete($id);
+        
+        return redirect()->to('/admin/orders')->with('success', 'Pesanan berhasil dihapus');
+    }
+
+    public function deleteAll()
+    {
+        if (!session()->get('user_logged_in') || session()->get('role') !== 'admin') {
+            return redirect()->to('/admin/orders')->with('error', 'Akses ditolak');
+        }
+
+        $db = \Config\Database::connect();
+        $db->table('customer_order_items')->truncate();
+        $db->table('customer_orders')->truncate();
+        
+        return redirect()->to('/admin/orders')->with('success', 'Semua pesanan berhasil dihapus');
     }
 }

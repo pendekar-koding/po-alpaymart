@@ -33,7 +33,10 @@ class ProductModel extends Model
 
     public function getProductWithVariants($id)
     {
-        $product = $this->find($id);
+        $product = $this->select('products.*, users.shop_name')
+                        ->join('users', 'products.user_id = users.id', 'left')
+                        ->where('products.id', $id)
+                        ->first();
         if ($product) {
             $variantModel = new ProductVariantModel();
             $product['variants'] = $variantModel->where('product_id', $id)->findAll();
