@@ -7,13 +7,24 @@
       <div class="card-header">
         <div class="d-flex justify-content-between align-items-center">
           <h3 class="card-title">Daftar Pesanan</h3>
-          <?php if (session()->get('role') === 'admin' && !empty($orders)): ?>
-          <a href="<?= base_url('admin/orders/delete-all') ?>" 
-             class="btn btn-danger" 
-             onclick="return confirmDelete(event, 'SEMUA pesanan')">
-            <i class="fas fa-trash-alt"></i> Hapus Semua
-          </a>
-          <?php endif; ?>
+          <div>
+            <?php if (session()->get('role') === 'admin' && !empty($orders)): ?>
+            <div class="btn-group mr-2" role="group">
+              <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
+                <i class="fas fa-download"></i> Export
+              </button>
+              <div class="dropdown-menu">
+                <a class="dropdown-item" href="<?= base_url('admin/orders/export-excel') ?>"><i class="fas fa-file-excel"></i> Export Excel</a>
+                <a class="dropdown-item" href="<?= base_url('admin/orders/export-pdf') ?>"><i class="fas fa-file-pdf"></i> Export PDF per Toko</a>
+              </div>
+            </div>
+            <a href="<?= base_url('admin/orders/delete-all') ?>" 
+               class="btn btn-danger" 
+               onclick="return confirmDelete(event, 'SEMUA pesanan')">
+              <i class="fas fa-trash-alt"></i> Hapus Semua
+            </a>
+            <?php endif; ?>
+          </div>
         </div>
       </div>
       <div class="card-body">
@@ -41,6 +52,7 @@
             <tr>
               <th>No. Order</th>
               <th>Customer</th>
+              <th>Divisi</th>
               <th>Total</th>
               <th>Pembayaran</th>
               <th>Status</th>
@@ -53,6 +65,7 @@
             <tr>
               <td><?= $order['order_number'] ?></td>
               <td><?= $order['customer_name'] ?></td>
+              <td><?= $order['nama_divisi'] ?? 'N/A' ?></td>
               <td>Rp <?= number_format($order['total_amount'], 0, ',', '.') ?></td>
               <td><span class="badge badge-<?= $order['payment_method'] == 'QRIS' ? 'primary' : 'success' ?>"><?= $order['payment_method'] ?></span></td>
               <td>

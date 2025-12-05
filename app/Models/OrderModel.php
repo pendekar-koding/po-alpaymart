@@ -37,6 +37,22 @@ class OrderModel extends Model
         return $query->orderBy('customer_orders.created_at', 'DESC')->findAll();
     }
 
+    public function getOrdersWithCustomerOrderbyASC($search = null)
+    {
+        $query = $this->select('customer_orders.*, divisions.nama_divisi')
+                      ->join('divisions', 'divisions.id = customer_orders.division_id');
+
+        if ($search) {
+            $query->groupStart()
+                  ->like('customer_orders.order_number', $search)
+                  ->orLike('customer_orders.customer_name', $search)
+                  ->orLike('customer_orders.customer_whatsapp', $search)
+                  ->groupEnd();
+        }
+
+        return $query->orderBy('customer_orders.customer_name', 'ASC')->findAll();
+    }
+
     public function getOrderCountBySeller($userId)
     {
         return $this->join('customer_order_items', 'customer_order_items.order_id = customer_orders.id')
@@ -66,5 +82,21 @@ class OrderModel extends Model
         return $query->groupBy('customer_orders.id')
                      ->orderBy('customer_orders.created_at', 'DESC')
                      ->findAll();
+    }
+
+    public function getOrdersWithCustomerASC($search = null)
+    {
+        $query = $this->select('customer_orders.*, divisions.nama_divisi')
+                      ->join('divisions', 'divisions.id = customer_orders.division_id');
+        
+        if ($search) {
+            $query->groupStart()
+                  ->like('customer_orders.order_number', $search)
+                  ->orLike('customer_orders.customer_name', $search)
+                  ->orLike('customer_orders.customer_whatsapp', $search)
+                  ->groupEnd();
+        }
+        
+        return $query->orderBy('customer_orders.created_at', 'ASC')->findAll();
     }
 }

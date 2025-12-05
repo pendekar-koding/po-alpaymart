@@ -30,6 +30,9 @@ $routes->group('admin', function($routes) {
     $routes->post('orders/update-status/(:num)', 'Admin\Orders::updateStatus/$1');
     $routes->get('orders/delete/(:num)', 'Admin\Orders::delete/$1');
     $routes->get('orders/delete-all', 'Admin\Orders::deleteAll');
+    $routes->get('orders/export-excel', 'Admin\Orders::exportExcel');
+    $routes->get('orders/export-pdf', 'Admin\Orders::exportPdf');
+    $routes->get('orders/export-seller-excel', 'Admin\Orders::exportSellerExcel');
     
     // Users (Admin only)
     $routes->get('users', 'Admin\Users::index');
@@ -70,6 +73,8 @@ $routes->group('admin', function($routes) {
 $routes->get('product/(:num)', 'Shop::product/$1');
 $routes->post('cart/add', 'Cart::add');
 $routes->post('cart/remove', 'Cart::remove');
+$routes->post('cart/update', 'Cart::update');
+$routes->post('cart/updateNote', 'Cart::updateNote');
 $routes->get('cart', 'Cart::index');
 $routes->get('checkout', 'Checkout::index');
 $routes->post('checkout/process', 'Checkout::process');

@@ -23,12 +23,34 @@ class Payment extends BaseController
 
     public function index($orderId)
     {
+        // Check if online pre-order is closed
+        $settingModel = new SettingModel();
+        $poOnlineStatus = $settingModel->getSetting('website_status');
+        if ($poOnlineStatus === 'closed') {
+            return redirect()->to('/')->with('error', 'Maaf, PO Online sedang ditutup oleh admin');
+        }
+
         $order = $this->orderModel->find($orderId);
         if (!$order) {
             return redirect()->to('/')->with('error', 'Pesanan tidak ditemukan');
         }
 
-        // Get order items with product details
+        // Check if any shop in the order is closed
+        $orderItems = $this->orderItemModel->select('customer_order_items.*, product_variants.variant_name, products.name as product_name, products.user_id')
+                                          ->join('product_variants', 'product_variants.id = customer_order_items.product_variant_id')
+                                          ->join('products', 'products.id = product_variants.product_id')
+                                          ->where('order_id', $orderId)
+                                          ->findAll();
+
+        $userModel = new \App\Models\UserModel();
+        foreach ($orderItems as $item) {
+            $user = $userModel->find($item['user_id']);
+            if ($user && $user['shop_status'] === 'closed') {
+                return redirect()->to('/')->with('error', 'Maaf, toko ' . $user['shop_name'] . ' sedang tutup. Pesanan tidak dapat diproses.');
+            }
+        }
+
+        // Get order items with product details (already fetched above for validation)
         $orderItems = $this->orderItemModel->select('customer_order_items.*, product_variants.variant_name, products.name as product_name')
                                           ->join('product_variants', 'product_variants.id = customer_order_items.product_variant_id')
                                           ->join('products', 'products.id = product_variants.product_id')
@@ -39,7 +61,6 @@ class Payment extends BaseController
         $division = $this->divisionModel->find($order['division_id']);
         
         // Calculate donation info
-        $settingModel = new SettingModel();
         $donationAmount = (int) $settingModel->getSetting('donation_amount');
         $totalDonation = 0;
         foreach ($orderItems as $item) {

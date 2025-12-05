@@ -23,6 +23,13 @@ class Checkout extends BaseController
 
     public function index()
     {
+        // Check if online pre-order is closed
+        $settingModel = new SettingModel();
+        $poOnlineStatus = $settingModel->getSetting('website_status');
+        if ($poOnlineStatus === 'closed') {
+            return redirect()->to('/')->with('error', 'Maaf, PO Online sedang ditutup oleh admin');
+        }
+
         $cart = session()->get('cart') ?? [];
         if (empty($cart)) {
             return redirect()->to('/cart')->with('error', 'Keranjang kosong');
@@ -65,6 +72,13 @@ class Checkout extends BaseController
 
     public function process()
     {
+        // Check if online pre-order is closed
+        $settingModel = new SettingModel();
+        $poOnlineStatus = $settingModel->getSetting('website_status');
+        if ($poOnlineStatus === 'closed') {
+            return redirect()->to('/')->with('error', 'Maaf, PO Online sedang ditutup oleh admin');
+        }
+
         $cart = session()->get('cart') ?? [];
         if (empty($cart)) {
             return redirect()->to('/cart')->with('error', 'Keranjang kosong');
@@ -134,7 +148,8 @@ class Checkout extends BaseController
                 'product_variant_id' => $item['variant_id'],
                 'quantity' => $item['quantity'],
                 'price' => $item['price'],
-                'subtotal' => $item['price'] * $item['quantity']
+                'subtotal' => $item['price'] * $item['quantity'],
+                'note' => $item['note'] ?? ''
             ]);
         }
         

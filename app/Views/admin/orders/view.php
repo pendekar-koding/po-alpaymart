@@ -68,6 +68,7 @@
               <th>Qty</th>
               <th>Harga</th>
               <th>Subtotal</th>
+              <th>Catatan</th>
             </tr>
           </thead>
           <tbody>
@@ -78,6 +79,7 @@
               <td><?= $item->quantity ?></td>
               <td>Rp <?= number_format($item->price, 0, ',', '.') ?></td>
               <td>Rp <?= number_format($item->subtotal, 0, ',', '.') ?></td>
+              <td><?= !empty($item->note) ? esc($item->note) : '-' ?></td>
             </tr>
             <?php endforeach; ?>
           </tbody>

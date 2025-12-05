@@ -104,7 +104,12 @@
   <div class="col-12">
     <div class="card">
       <div class="card-header">
-        <h3 class="card-title">Analisis Penjualan Produk</h3>
+        <div class="d-flex justify-content-between align-items-center">
+          <h3 class="card-title">Analisis Penjualan Produk</h3>
+          <a href="<?= base_url('admin/orders/export-seller-excel') ?>" class="btn btn-success">
+            <i class="fas fa-file-excel"></i> Export Laporan Pesanan
+          </a>
+        </div>
       </div>
       <div class="card-body">
         <?php if (!empty($sales_data)): ?>

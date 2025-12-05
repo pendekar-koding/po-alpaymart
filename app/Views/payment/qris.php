@@ -145,9 +145,14 @@
                         <div class="mb-3">
                             <strong>Item Pesanan:</strong>
                             <?php foreach ($orderItems as $item): ?>
-                                <div class="d-flex justify-content-between mb-1">
-                                    <span><?= $item['product_name'] ?> - <?= $item['variant_name'] ?> (x<?= $item['quantity'] ?>)</span>
-                                    <span>Rp <?= number_format($item['subtotal'], 0, ',', '.') ?></span>
+                                <div class="mb-2 p-2" style="background: rgba(255,255,255,0.7); border-radius: 8px;">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span><strong><?= $item['product_name'] ?></strong> - <?= $item['variant_name'] ?> (x<?= $item['quantity'] ?>)</span>
+                                        <span><strong>Rp <?= number_format($item['subtotal'], 0, ',', '.') ?></strong></span>
+                                    </div>
+                                    <?php if (!empty($item['note'])): ?>
+                                        <small class="text-muted"><i class="fas fa-sticky-note me-1"></i>Catatan: <?= esc($item['note']) ?></small>
+                                    <?php endif; ?>
                                 </div>
                             <?php endforeach; ?>
                         </div>

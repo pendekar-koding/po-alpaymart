@@ -116,6 +116,7 @@
                             <th style="border: none; padding: 1rem;"><i class="fas fa-tags me-2"></i>Varian</th>
                             <th style="border: none; padding: 1rem;"><i class="fas fa-tag me-2"></i>Harga</th>
                             <th style="border: none; padding: 1rem;"><i class="fas fa-sort-numeric-up me-2"></i>Qty</th>
+                            <th style="border: none; padding: 1rem;"><i class="fas fa-sticky-note me-2"></i>Catatan</th>
                             <th style="border: none; padding: 1rem;"><i class="fas fa-calculator me-2"></i>Subtotal</th>
                             <th style="border: none; padding: 1rem;"><i class="fas fa-cog me-2"></i>Aksi</th>
                         </tr>
@@ -134,6 +135,9 @@
                             <td style="padding: 1rem;">
                                 <span class="badge" style="background: linear-gradient(45deg, #1e3a8a, #8b5cf6); padding: 0.5rem 1rem; border-radius: 15px;"><?= $item['quantity'] ?></span>
                             </td>
+                            <td style="padding: 1rem;">
+                                <textarea class="form-control form-control-sm" placeholder="Catatan untuk toko..." onchange="updateNote(<?= $item['variant_id'] ?>, this.value)" style="min-height: 60px; resize: vertical;"><?= $item['note'] ?? '' ?></textarea>
+                            </td>
                             <td style="padding: 1rem; color: #28a745; font-weight: 600; font-size: 1.1em;">Rp <?= number_format($subtotal, 0, ',', '.') ?></td>
                             <td style="padding: 1rem;">
                                 <button class="btn btn-sm btn-danger" onclick="removeFromCart(<?= $item['variant_id'] ?>)" title="Hapus dari keranjang">
@@ -145,7 +149,7 @@
                     </tbody>
                     <tfoot style="background: rgba(30, 58, 138, 0.1);">
                         <tr>
-                            <th colspan="5" style="padding: 1.5rem; font-size: 1.2em; color: #495057;">Total Pembayaran</th>
+                            <th colspan="6" style="padding: 1.5rem; font-size: 1.2em; color: #495057;">Total Pembayaran</th>
                             <th style="padding: 1.5rem; font-size: 1.3em; color: #28a745; font-weight: bold;">Rp <?= number_format($total, 0, ',', '.') ?></th>
                         </tr>
                     </tfoot>
@@ -173,7 +177,7 @@
                             </button>
                         </div>
                     </div>
-                    <div class="row">
+                    <div class="row mb-2">
                         <div class="col-6">
                             <small class="text-muted"><i class="fas fa-tag me-1"></i>Harga Satuan</small>
                             <div style="color: #28a745; font-weight: 500;">Rp <?= number_format($item['price'], 0, ',', '.') ?></div>
@@ -182,6 +186,10 @@
                             <small class="text-muted"><i class="fas fa-calculator me-1"></i>Subtotal</small>
                             <div style="color: #28a745; font-weight: 600; font-size: 1.1em;">Rp <?= number_format($subtotal, 0, ',', '.') ?></div>
                         </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted"><i class="fas fa-sticky-note me-1"></i>Catatan untuk Toko</small>
+                        <textarea class="form-control form-control-sm mt-1" placeholder="Tulis catatan untuk toko..." onchange="updateNote(<?= $item['variant_id'] ?>, this.value)" style="min-height: 50px; resize: vertical;"><?= $item['note'] ?? '' ?></textarea>
                     </div>
                 </div>
                 <?php endforeach; ?>
@@ -257,6 +265,30 @@
                     popup.error('Terjadi kesalahan saat menghapus produk');
                 });
             }
+        }
+        
+        function updateNote(variantId, note) {
+            fetch('<?= base_url('cart/updateNote') ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: 'variant_id=' + variantId + '&note=' + encodeURIComponent(note)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Optional: show success message
+                    console.log('Note updated successfully');
+                } else {
+                    popup.error(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                popup.error('Terjadi kesalahan saat menyimpan catatan');
+            });
         }
     </script>
 </body>
