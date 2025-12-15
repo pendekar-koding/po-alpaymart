@@ -9,7 +9,7 @@
           <h3 class="card-title">Daftar Pesanan</h3>
           <div>
             <?php if (session()->get('role') === 'admin' && !empty($orders)): ?>
-            <div class="btn-group mr-2" role="group">
+            <div class="btn-group" role="group">
               <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
                 <i class="fas fa-download"></i> Export
               </button>
@@ -18,11 +18,6 @@
                 <a class="dropdown-item" href="<?= base_url('admin/orders/export-pdf') ?>"><i class="fas fa-file-pdf"></i> Export PDF per Toko</a>
               </div>
             </div>
-            <a href="<?= base_url('admin/orders/delete-all') ?>" 
-               class="btn btn-danger" 
-               onclick="return confirmDelete(event, 'SEMUA pesanan')">
-              <i class="fas fa-trash-alt"></i> Hapus Semua
-            </a>
             <?php endif; ?>
           </div>
         </div>
@@ -83,13 +78,7 @@
                   <i class="fas fa-check"></i> Konfirmasi
                 </button>
                 <?php endif; ?>
-                <?php if (session()->get('role') === 'admin'): ?>
-                <a href="<?= base_url('admin/orders/delete/' . $order['id']) ?>" 
-                   class="btn btn-danger btn-sm" 
-                   onclick="return confirmDelete(event, 'pesanan ini')">
-                  <i class="fas fa-trash"></i> Hapus
-                </a>
-                <?php endif; ?>
+
               </td>
             </tr>
             <?php endforeach; ?>

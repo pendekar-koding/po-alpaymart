@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/css/adminlte.min.css">
+  <link rel="stylesheet" href="<?= base_url('assets/css/protection.css') ?>">
 </head>
 <body class="hold-transition sidebar-mini">
 <div class="wrapper">
@@ -132,6 +133,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/js/adminlte.min.js"></script>
 <script src="<?= base_url('public/js/popup-alerts.js') ?>"></script>
 <script src="<?= base_url('public/js/loading-overlay.js') ?>"></script>
+<script src="<?= base_url('assets/js/protection.js') ?>"></script>
 <script>
 // Function untuk konfirmasi delete dengan popup
 async function confirmDelete(event, itemName) {

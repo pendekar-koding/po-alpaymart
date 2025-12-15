@@ -24,6 +24,9 @@ class Auth extends BaseController
 
     public function authenticate()
     {
+        // Clear old session files
+        $this->clearOldSessions();
+        
         $username = $this->request->getPost('username');
         $password = $this->request->getPost('password');
 
@@ -36,7 +39,7 @@ class Auth extends BaseController
                 'full_name' => $user['full_name'],
                 'role' => $user['role'],
                 'user_logged_in' => true,
-                'admin_logged_in' => true // Backward compatibility
+                'admin_logged_in' => true
             ]);
             return redirect()->to('/admin');
         }
@@ -48,5 +51,19 @@ class Auth extends BaseController
     {
         session()->destroy();
         return redirect()->to('/admin/login');
+    }
+
+    private function clearOldSessions()
+    {
+        $sessionPath = WRITEPATH . 'session';
+        if (is_dir($sessionPath)) {
+            $files = glob($sessionPath . '/ci_session*');
+            $now = time();
+            foreach ($files as $file) {
+                if (is_file($file) && ($now - filemtime($file)) > 3600) {
+                    unlink($file);
+                }
+            }
+        }
     }
 }

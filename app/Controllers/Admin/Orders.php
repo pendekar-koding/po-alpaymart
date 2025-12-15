@@ -4,16 +4,19 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\OrderModel;
+use App\Models\ActivityLogModel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class Orders extends BaseController
 {
     protected $orderModel;
+    protected $activityLogModel;
 
     public function __construct()
     {
         $this->orderModel = new OrderModel();
+        $this->activityLogModel = new ActivityLogModel();
     }
 
     public function index()
@@ -78,6 +81,14 @@ class Orders extends BaseController
         $status = $this->request->getPost('status');
         $this->orderModel->update($id, ['status' => $status]);
         
+        $this->activityLogModel->logActivity(
+            session()->get('user_id'),
+            session()->get('username'),
+            session()->get('role'),
+            'Update Order Status',
+            "Updated order ID {$id} status to {$status}"
+        );
+        
         return redirect()->back()->with('success', 'Status order berhasil diupdate');
     }
 
@@ -87,9 +98,20 @@ class Orders extends BaseController
             return redirect()->to('/admin/orders')->with('error', 'Akses ditolak');
         }
 
+        // Generate backup before delete
+        $this->generateBackupReports();
+
         $db = \Config\Database::connect();
         $db->table('customer_order_items')->where('order_id', $id)->delete();
         $this->orderModel->delete($id);
+        
+        $this->activityLogModel->logActivity(
+            session()->get('user_id'),
+            session()->get('username'),
+            session()->get('role'),
+            'Delete Order',
+            "Deleted order ID {$id}"
+        );
         
         return redirect()->to('/admin/orders')->with('success', 'Pesanan berhasil dihapus');
     }
@@ -100,9 +122,20 @@ class Orders extends BaseController
             return redirect()->to('/admin/orders')->with('error', 'Akses ditolak');
         }
 
+        // Generate backup before delete
+        $this->generateBackupReports();
+
         $db = \Config\Database::connect();
         $db->table('customer_order_items')->truncate();
         $db->table('customer_orders')->truncate();
+        
+        $this->activityLogModel->logActivity(
+            session()->get('user_id'),
+            session()->get('username'),
+            session()->get('role'),
+            'Delete All Orders',
+            'Deleted all orders from system'
+        );
         
         return redirect()->to('/admin/orders')->with('success', 'Semua pesanan berhasil dihapus');
     }
@@ -183,6 +216,14 @@ class Orders extends BaseController
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $filename = 'Laporan_Pesanan_' . date('Y-m-d_H-i-s') . '.xlsx';
         
+        $this->activityLogModel->logActivity(
+            session()->get('user_id'),
+            session()->get('username'),
+            session()->get('role'),
+            'Export Excel',
+            'Exported all orders to Excel'
+        );
+        
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
@@ -251,6 +292,14 @@ class Orders extends BaseController
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $filename = 'Laporan_Pesanan_' . $shopName . '_' . date('Y-m-d_H-i-s') . '.xlsx';
         
+        $this->activityLogModel->logActivity(
+            session()->get('user_id'),
+            session()->get('username'),
+            session()->get('role'),
+            'Export Seller Excel',
+            "Exported orders for shop: {$shopName}"
+        );
+        
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
@@ -313,7 +362,133 @@ class Orders extends BaseController
             $mpdf->WriteHTML($html);
         }
         
+        $this->activityLogModel->logActivity(
+            session()->get('user_id'),
+            session()->get('username'),
+            session()->get('role'),
+            'Export PDF',
+            'Exported orders per shop to PDF'
+        );
+        
         $filename = 'Laporan_Pesanan_Per_Toko_' . date('Y-m-d_H-i-s') . '.pdf';
         $mpdf->Output($filename, 'D');
+    }
+
+    private function generateBackupReports()
+    {
+        $reportPath = WRITEPATH . 'report';
+        if (!is_dir($reportPath)) {
+            mkdir($reportPath, 0755, true);
+        }
+
+        // Generate all orders backup
+        $this->generateAllOrdersBackup($reportPath);
+        
+        // Generate per shop backup
+        $this->generatePerShopBackup($reportPath);
+    }
+
+    private function generateAllOrdersBackup($reportPath)
+    {
+        $orders = $this->orderModel->getOrdersWithCustomerOrderbyASC();
+        $db = \Config\Database::connect();
+        
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        
+        $sheet->setCellValue('A1', 'No. Pesanan');
+        $sheet->setCellValue('B1', 'Nama Customer');
+        $sheet->setCellValue('C1', 'Divisi');
+        $sheet->setCellValue('D1', 'WhatsApp');
+        $sheet->setCellValue('E1', 'Status');
+        $sheet->setCellValue('F1', 'Metode Pembayaran');
+        $sheet->setCellValue('G1', 'Produk');
+        $sheet->setCellValue('H1', 'Qty');
+        $sheet->setCellValue('I1', 'Note');
+        $sheet->setCellValue('J1', 'Toko');
+        
+        $sheet->getStyle('A1:J1')->getFont()->setBold(true);
+        
+        $row = 2;
+        foreach ($orders as $order) {
+            $orderItems = $db->table('customer_order_items')
+                            ->select('customer_order_items.*, product_variants.variant_name, products.name as product_name, users.shop_name')
+                            ->join('product_variants', 'product_variants.id = customer_order_items.product_variant_id')
+                            ->join('products', 'products.id = product_variants.product_id')
+                            ->join('users', 'users.id = products.user_id')
+                            ->where('order_id', $order['id'])
+                            ->get()->getResult();
+            
+            foreach ($orderItems as $item) {
+                $sheet->setCellValue('A' . $row, $order['order_number']);
+                $sheet->setCellValue('B' . $row, $order['customer_name']);
+                $sheet->setCellValue('C' . $row, $order['nama_divisi'] ?? 'N/A');
+                $sheet->setCellValue('D' . $row, $order['customer_whatsapp']);
+                $sheet->setCellValue('E' . $row, ucfirst($order['status']));
+                $sheet->setCellValue('F' . $row, $order['payment_method']);
+                $sheet->setCellValue('G' . $row, $item->product_name . ' - ' . $item->variant_name);
+                $sheet->setCellValue('H' . $row, $item->quantity);
+                $sheet->setCellValue('I' . $row, $item->note);
+                $sheet->setCellValue('J' . $row, $item->shop_name ?? '-');
+                $row++;
+            }
+        }
+        
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $filename = $reportPath . '/Backup_All_Orders_' . date('Y-m-d_H-i-s') . '.xlsx';
+        $writer->save($filename);
+    }
+
+    private function generatePerShopBackup($reportPath)
+    {
+        $db = \Config\Database::connect();
+        $shops = $db->table('users')
+                   ->select('users.id, users.shop_name')
+                   ->where('role', 'seller')
+                   ->where('shop_name IS NOT NULL')
+                   ->get()->getResult();
+
+        foreach ($shops as $shop) {
+            $orderItems = $db->table('customer_order_items')
+                            ->select('customer_orders.order_number, customer_orders.customer_name, divisions.nama_divisi, customer_orders.customer_whatsapp, products.name as product_name, product_variants.variant_name, customer_order_items.quantity, customer_order_items.note')
+                            ->join('customer_orders', 'customer_orders.id = customer_order_items.order_id')
+                            ->join('divisions', 'divisions.id = customer_orders.division_id')
+                            ->join('product_variants', 'product_variants.id = customer_order_items.product_variant_id')
+                            ->join('products', 'products.id = product_variants.product_id')
+                            ->where('products.user_id', $shop->id)
+                            ->orderBy('customer_orders.order_number')
+                            ->get()->getResult();
+            
+            if (empty($orderItems)) continue;
+            
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            
+            $sheet->setCellValue('A1', 'No. Order');
+            $sheet->setCellValue('B1', 'Nama');
+            $sheet->setCellValue('C1', 'Divisi');
+            $sheet->setCellValue('D1', 'WhatsApp');
+            $sheet->setCellValue('E1', 'Produk');
+            $sheet->setCellValue('F1', 'Catatan');
+            $sheet->setCellValue('G1', 'Qty');
+            
+            $sheet->getStyle('A1:G1')->getFont()->setBold(true);
+            
+            $row = 2;
+            foreach ($orderItems as $item) {
+                $sheet->setCellValue('A' . $row, $item->order_number);
+                $sheet->setCellValue('B' . $row, $item->customer_name);
+                $sheet->setCellValue('C' . $row, $item->nama_divisi ?? 'N/A');
+                $sheet->setCellValue('D' . $row, $item->customer_whatsapp);
+                $sheet->setCellValue('E' . $row, $item->product_name . ' - ' . $item->variant_name);
+                $sheet->setCellValue('F' . $row, $item->note ?? '-');
+                $sheet->setCellValue('G' . $row, $item->quantity);
+                $row++;
+            }
+            
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $filename = $reportPath . '/Backup_' . $shop->shop_name . '_' . date('Y-m-d_H-i-s') . '.xlsx';
+            $writer->save($filename);
+        }
     }
 }
