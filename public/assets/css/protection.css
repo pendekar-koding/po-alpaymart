@@ -1,0 +1,37 @@
+/* Disable text selection */
+* {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Re-enable for input fields */
+input, textarea {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+/* Disable image dragging */
+img {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+    pointer-events: none;
+}
+
+/* Hide scrollbars to prevent source viewing */
+::-webkit-scrollbar {
+    display: none;
+}
+
+/* Disable print screen */
+@media print {
+    body {
+        display: none !important;
+    }
+}

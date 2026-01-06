@@ -141,6 +141,15 @@
                     </div>
 
                     <div class="text-center mt-4">
+                        <?php if ($order['status'] === 'pending'): ?>
+                        <button onclick="processPayment()" class="btn btn-success text-white me-2">
+                            <i class="fas fa-check-circle me-2"></i>Konfirmasi Pesanan
+                        </button>
+                        <?php else: ?>
+                        <div class="alert alert-success mb-3">
+                            <i class="fas fa-check-circle me-2"></i>Pesanan sudah dikonfirmasi
+                        </div>
+                        <?php endif; ?>
                         <button onclick="takeScreenshot()" class="btn btn-screenshot text-white me-2">
                             <i class="fas fa-camera me-2"></i>Screenshot
                         </button>
@@ -158,6 +167,13 @@
     <script src="<?= base_url('public/js/popup-alerts.js') ?>"></script>
     <script src="<?= base_url('public/js/loading-overlay.js') ?>"></script>
     <script>
+        function processPayment() {
+            if (confirm('Apakah Anda yakin ingin mengkonfirmasi pesanan COD ini?')) {
+                showLoading('Memproses konfirmasi pesanan...');
+                window.location.href = '<?= base_url('payment/confirm/' . $order['id']) ?>';
+            }
+        }
+        
         function takeScreenshot() {
             // Wait for popup to be initialized
             if (typeof popup === 'undefined') {

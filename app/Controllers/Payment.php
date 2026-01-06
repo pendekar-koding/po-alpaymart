@@ -7,6 +7,7 @@ use App\Models\OrderModel;
 use App\Models\OrderItemModel;
 use App\Models\DivisionModel;
 use App\Models\SettingModel;
+use App\Models\ProductVariantModel;
 
 class Payment extends BaseController
 {
@@ -75,6 +76,11 @@ class Payment extends BaseController
             'donation_description' => $settingModel->getSetting('donation_description')
         ];
 
+        // Check if order is already confirmed
+        if ($order['status'] === 'confirmed') {
+            return redirect()->to('/')->with('info', 'Pesanan sudah dikonfirmasi sebelumnya');
+        }
+        
         if ($order['payment_method'] === 'QRIS') {
             return view('payment/qris', $data);
         } else {
@@ -89,5 +95,49 @@ class Payment extends BaseController
             return $this->response->download($qrisPath, null);
         }
         return redirect()->back()->with('error', 'File QRIS tidak ditemukan');
+    }
+
+    public function confirmPayment($orderId)
+    {
+        $order = $this->orderModel->find($orderId);
+        if (!$order || $order['status'] !== 'pending') {
+            return redirect()->to('/')->with('error', 'Pesanan tidak valid atau sudah diproses');
+        }
+
+        // Get order items
+        $orderItems = $this->orderItemModel->where('order_id', $orderId)->findAll();
+        
+        // Validate stock availability
+        $variantModel = new ProductVariantModel();
+        $stockErrors = [];
+        
+        foreach ($orderItems as $item) {
+            $variant = $variantModel->find($item['product_variant_id']);
+            if (!$variant || $variant['stock'] < $item['quantity']) {
+                $productInfo = $variantModel->select('product_variants.variant_name, products.name as product_name')
+                                           ->join('products', 'products.id = product_variants.product_id')
+                                           ->where('product_variants.id', $item['product_variant_id'])
+                                           ->first();
+                $stockErrors[] = ($productInfo['product_name'] ?? 'Produk') . ' - ' . ($productInfo['variant_name'] ?? 'Varian');
+            }
+        }
+        
+        if (!empty($stockErrors)) {
+            $errorMessage = 'Stok tidak mencukupi untuk: ' . implode(', ', $stockErrors);
+            return redirect()->back()->with('error', $errorMessage);
+        }
+        
+        // Reduce stock for all items
+        foreach ($orderItems as $item) {
+            $variant = $variantModel->find($item['product_variant_id']);
+            $variantModel->update($item['product_variant_id'], [
+                'stock' => $variant['stock'] - $item['quantity']
+            ]);
+        }
+        
+        // Update order status
+        $this->orderModel->update($orderId, ['status' => 'confirmed']);
+        
+        return redirect()->to('/')->with('success', 'Pembayaran berhasil dikonfirmasi. Pesanan Anda sedang diproses.');
     }
 }

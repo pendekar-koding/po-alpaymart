@@ -22,9 +22,6 @@ class Cart extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Stok tidak mencukupi']);
         }
         
-        // Reduce stock
-        $variantModel->update($variantId, ['stock' => $variant['stock'] - $quantity]);
-        
         // Add donation to price
         $settingModel = new SettingModel();
         $donationAmount = (int) $settingModel->getSetting('donation_amount');
@@ -93,13 +90,6 @@ class Cart extends BaseController
         $cart = session()->get('cart') ?? [];
         
         if (isset($cart[$variantId])) {
-            // Return stock before removing from cart
-            $variantModel = new ProductVariantModel();
-            $variant = $variantModel->find($variantId);
-            if ($variant) {
-                $variantModel->update($variantId, ['stock' => $variant['stock'] + $cart[$variantId]['quantity']]);
-            }
-            
             unset($cart[$variantId]);
             session()->set('cart', $cart);
             return $this->response->setJSON(['success' => true, 'message' => 'Produk berhasil dihapus dari keranjang']);
@@ -126,16 +116,10 @@ class Cart extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Produk tidak ditemukan']);
         }
         
-        $currentQuantity = $cart[$variantId]['quantity'];
-        $quantityDiff = $newQuantity - $currentQuantity;
-        
-        // Check if we have enough stock for increase
-        if ($quantityDiff > 0 && $variant['stock'] < $quantityDiff) {
+        // Check if we have enough stock
+        if ($variant['stock'] < $newQuantity) {
             return $this->response->setJSON(['success' => false, 'message' => 'Stok tidak mencukupi']);
         }
-        
-        // Update stock
-        $variantModel->update($variantId, ['stock' => $variant['stock'] - $quantityDiff]);
         
         // Update cart
         $cart[$variantId]['quantity'] = $newQuantity;

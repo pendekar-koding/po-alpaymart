@@ -126,7 +126,7 @@
                             <li>Arahkan kamera ke QR Code di atas</li>
                             <li>Masukkan nominal: <strong>Rp <?= number_format($order['total_amount'], 0, ',', '.') ?></strong></li>
                             <li>Konfirmasi pembayaran</li>
-                            <li>Simpan bukti transfer untuk konfirmasi</li>
+                            <li><strong>Klik tombol "Konfirmasi Pembayaran" di bawah</strong></li>
                         </ol>
                     </div>
                 </div>
@@ -172,8 +172,17 @@
                     </div>
 
                     <div class="text-center mt-4">
-                        <button onclick="confirmPayment()" class="btn btn-confirm text-white me-2">
-                            <i class="fab fa-whatsapp me-2"></i>Konfirmasi Pembayaran
+                        <?php if ($order['status'] === 'pending'): ?>
+                        <button onclick="processPayment()" class="btn btn-confirm text-white me-2">
+                            <i class="fas fa-check-circle me-2"></i>Konfirmasi Pembayaran
+                        </button>
+                        <?php else: ?>
+                        <div class="alert alert-success mb-3">
+                            <i class="fas fa-check-circle me-2"></i>Pembayaran sudah dikonfirmasi
+                        </div>
+                        <?php endif; ?>
+                        <button onclick="contactAdmin()" class="btn btn-success text-white me-2">
+                            <i class="fab fa-whatsapp me-2"></i>Hubungi Admin
                         </button>
                         <button onclick="takeScreenshot()" class="btn btn-screenshot text-white me-2">
                             <i class="fas fa-camera me-2"></i>Screenshot
@@ -207,7 +216,14 @@
     <script src="<?= base_url('public/js/popup-alerts.js') ?>"></script>
     <script src="<?= base_url('public/js/loading-overlay.js') ?>"></script>
     <script>
-        function confirmPayment() {
+        function processPayment() {
+            if (confirm('Apakah Anda yakin sudah melakukan pembayaran?')) {
+                showLoading('Memproses konfirmasi pembayaran...');
+                window.location.href = '<?= base_url('payment/confirm/' . $order['id']) ?>';
+            }
+        }
+        
+        function contactAdmin() {
             const orderDetails = `Konfirmasi Pembayaran QRIS\n\nNomor Pesanan: <?= $order['order_number'] ?>\nNama: <?= $order['customer_name'] ?>\nWhatsApp: <?= $order['customer_whatsapp'] ?>\nDivisi: <?= $division['nama_divisi'] ?? 'N/A' ?>\n\nDetail Pesanan:\n<?php foreach ($orderItems as $item): ?><?= $item['product_name'] ?> - <?= $item['variant_name'] ?> (x<?= $item['quantity'] ?>) = Rp <?= number_format($item['subtotal'], 0, ',', '.') ?>\n<?php endforeach; ?>\nTotal: Rp <?= number_format($order['total_amount'], 0, ',', '.') ?>\n\nSaya sudah melakukan pembayaran via QRIS. Mohon konfirmasi pesanan saya.`;
             
             const settingModel = <?= json_encode((new \App\Models\SettingModel())->getSetting('admin_whatsapp')) ?>;

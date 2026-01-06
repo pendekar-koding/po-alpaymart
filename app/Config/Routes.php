@@ -79,6 +79,7 @@ $routes->get('cart', 'Cart::index');
 $routes->get('checkout', 'Checkout::index');
 $routes->post('checkout/process', 'Checkout::process');
 $routes->get('payment/(:num)', 'Payment::index/$1');
+$routes->get('payment/confirm/(:num)', 'Payment::confirmPayment/$1');
 $routes->get('payment/download-qris', 'Payment::downloadQris');
 $routes->get('qris-image', 'QrisImage::show');
 $routes->get('catalog/download/(:num)', 'Catalog::download/$1');

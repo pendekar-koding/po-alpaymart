@@ -108,6 +108,8 @@ class Checkout extends BaseController
             $message = 'Toko berikut sedang tutup dan produknya telah dihapus dari keranjang: ' . implode(', ', array_unique($closedShops));
             return redirect()->to('/cart')->with('error', $message);
         }
+        
+        // Note: Stock validation will be done at payment confirmation, not here
 
         $validation = \Config\Services::validation();
         $validation->setRules([

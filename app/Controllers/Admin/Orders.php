@@ -159,14 +159,15 @@ class Orders extends BaseController
         $sheet->setCellValue('D1', 'WhatsApp');
         $sheet->setCellValue('E1', 'Status');
         $sheet->setCellValue('F1', 'Metode Pembayaran');
-        $sheet->setCellValue('G1', 'Produk');
-        $sheet->setCellValue('H1', 'Qty');
-        $sheet->setCellValue('I1', 'Note');
-        $sheet->setCellValue('J1', 'Toko');
+        $sheet->setCellValue('G1', 'Total Pembayaran');
+        $sheet->setCellValue('H1', 'Produk');
+        $sheet->setCellValue('I1', 'Qty');
+        $sheet->setCellValue('J1', 'Note');
+        $sheet->setCellValue('K1', 'Toko');
         
         // Style headers
-        $sheet->getStyle('A1:J1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:J1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('E2E8F0');
+        $sheet->getStyle('A1:K1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:K1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('E2E8F0');
         
         $row = 2;
         foreach ($orders as $order) {
@@ -186,10 +187,11 @@ class Orders extends BaseController
                 $sheet->setCellValue('D' . $row, $order['customer_whatsapp']);
                 $sheet->setCellValue('E' . $row, ucfirst($order['status']));
                 $sheet->setCellValue('F' . $row, $order['payment_method']);
-                $sheet->setCellValue('G' . $row, $item->product_name . ' - ' . $item->variant_name);
-                $sheet->setCellValue('H' . $row, $item->quantity);
-                $sheet->setCellValue('I' . $row, $item->note);
-                $sheet->setCellValue('J' . $row, $item->shop_name ?? '-');
+                $sheet->setCellValue('G' . $row, 'Rp ' . number_format($order['total_amount'], 0, ',', '.'));
+                $sheet->setCellValue('H' . $row, $item->product_name . ' - ' . $item->variant_name);
+                $sheet->setCellValue('I' . $row, $item->quantity);
+                $sheet->setCellValue('J' . $row, $item->note);
+                $sheet->setCellValue('K' . $row, $item->shop_name ?? '-');
                 $row++;
             }
             
@@ -202,14 +204,15 @@ class Orders extends BaseController
                 $sheet->mergeCells('D' . $startRow . ':D' . $endRow);
                 $sheet->mergeCells('E' . $startRow . ':E' . $endRow);
                 $sheet->mergeCells('F' . $startRow . ':F' . $endRow);
+                $sheet->mergeCells('G' . $startRow . ':G' . $endRow);
                 
                 // Center align merged cells
-                $sheet->getStyle('A' . $startRow . ':F' . $endRow)->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+                $sheet->getStyle('A' . $startRow . ':G' . $endRow)->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
             }
         }
         
         // Auto-size columns
-        foreach (range('A', 'J') as $col) {
+        foreach (range('A', 'K') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
         
@@ -253,39 +256,67 @@ class Orders extends BaseController
         $sheet->setCellValue('B1', 'Nama');
         $sheet->setCellValue('C1', 'Divisi');
         $sheet->setCellValue('D1', 'WhatsApp');
-        $sheet->setCellValue('E1', 'Produk');
-        $sheet->setCellValue('F1', 'Catatan');
-        $sheet->setCellValue('G1', 'Qty');
+        $sheet->setCellValue('E1', 'Total Harga');
+        $sheet->setCellValue('F1', 'Produk');
+        $sheet->setCellValue('G1', 'Catatan');
+        $sheet->setCellValue('H1', 'Qty');
         
         // Style headers
-        $sheet->getStyle('A1:G1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:G1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('E2E8F0');
+        $sheet->getStyle('A1:H1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:H1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('E2E8F0');
         
-        // Get order items for this seller
-        $orderItems = $db->table('customer_order_items')
-                        ->select('customer_orders.order_number, customer_orders.customer_name, divisions.nama_divisi, customer_orders.customer_whatsapp, products.name as product_name, product_variants.variant_name, customer_order_items.quantity, customer_order_items.note')
-                        ->join('customer_orders', 'customer_orders.id = customer_order_items.order_id')
-                        ->join('divisions', 'divisions.id = customer_orders.division_id')
-                        ->join('product_variants', 'product_variants.id = customer_order_items.product_variant_id')
-                        ->join('products', 'products.id = product_variants.product_id')
-                        ->where('products.user_id', $userId)
-                        ->orderBy('customer_orders.order_number')
-                        ->get()->getResult();
+        // Get orders grouped by order_id for this seller
+        $orders = $db->table('customer_orders')
+                    ->select('customer_orders.id, customer_orders.order_number, customer_orders.customer_name, divisions.nama_divisi, customer_orders.customer_whatsapp, customer_orders.total_amount')
+                    ->join('customer_order_items', 'customer_order_items.order_id = customer_orders.id')
+                    ->join('product_variants', 'product_variants.id = customer_order_items.product_variant_id')
+                    ->join('products', 'products.id = product_variants.product_id')
+                    ->join('divisions', 'divisions.id = customer_orders.division_id')
+                    ->where('products.user_id', $userId)
+                    ->groupBy('customer_orders.id')
+                    ->orderBy('customer_orders.order_number')
+                    ->get()->getResult();
         
         $row = 2;
-        foreach ($orderItems as $item) {
-            $sheet->setCellValue('A' . $row, $item->order_number);
-            $sheet->setCellValue('B' . $row, $item->customer_name);
-            $sheet->setCellValue('C' . $row, $item->nama_divisi ?? 'N/A');
-            $sheet->setCellValue('D' . $row, $item->customer_whatsapp);
-            $sheet->setCellValue('E' . $row, $item->product_name . ' - ' . $item->variant_name);
-            $sheet->setCellValue('F' . $row, $item->note ?? '-');
-            $sheet->setCellValue('G' . $row, $item->quantity);
-            $row++;
+        foreach ($orders as $order) {
+            // Get order items for this order
+            $orderItems = $db->table('customer_order_items')
+                            ->select('customer_order_items.*, product_variants.variant_name, products.name as product_name')
+                            ->join('product_variants', 'product_variants.id = customer_order_items.product_variant_id')
+                            ->join('products', 'products.id = product_variants.product_id')
+                            ->where('customer_order_items.order_id', $order->id)
+                            ->where('products.user_id', $userId)
+                            ->get()->getResult();
+            
+            $startRow = $row;
+            foreach ($orderItems as $item) {
+                $sheet->setCellValue('A' . $row, $order->order_number);
+                $sheet->setCellValue('B' . $row, $order->customer_name);
+                $sheet->setCellValue('C' . $row, $order->nama_divisi ?? 'N/A');
+                $sheet->setCellValue('D' . $row, $order->customer_whatsapp);
+                $sheet->setCellValue('E' . $row, 'Rp ' . number_format($order->total_amount, 0, ',', '.'));
+                $sheet->setCellValue('F' . $row, $item->product_name . ' - ' . $item->variant_name);
+                $sheet->setCellValue('G' . $row, $item->note ?? '-');
+                $sheet->setCellValue('H' . $row, $item->quantity);
+                $row++;
+            }
+            
+            // Merge cells for order info if multiple items
+            if (count($orderItems) > 1) {
+                $endRow = $row - 1;
+                $sheet->mergeCells('A' . $startRow . ':A' . $endRow);
+                $sheet->mergeCells('B' . $startRow . ':B' . $endRow);
+                $sheet->mergeCells('C' . $startRow . ':C' . $endRow);
+                $sheet->mergeCells('D' . $startRow . ':D' . $endRow);
+                $sheet->mergeCells('E' . $startRow . ':E' . $endRow);
+                
+                // Center align merged cells
+                $sheet->getStyle('A' . $startRow . ':E' . $endRow)->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+            }
         }
         
         // Auto-size columns
-        foreach (range('A', 'G') as $col) {
+        foreach (range('A', 'H') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
         
@@ -402,12 +433,13 @@ class Orders extends BaseController
         $sheet->setCellValue('D1', 'WhatsApp');
         $sheet->setCellValue('E1', 'Status');
         $sheet->setCellValue('F1', 'Metode Pembayaran');
-        $sheet->setCellValue('G1', 'Produk');
-        $sheet->setCellValue('H1', 'Qty');
-        $sheet->setCellValue('I1', 'Note');
-        $sheet->setCellValue('J1', 'Toko');
+        $sheet->setCellValue('G1', 'Total Harga');
+        $sheet->setCellValue('H1', 'Produk');
+        $sheet->setCellValue('I1', 'Qty');
+        $sheet->setCellValue('J1', 'Note');
+        $sheet->setCellValue('K1', 'Toko');
         
-        $sheet->getStyle('A1:J1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:K1')->getFont()->setBold(true);
         
         $row = 2;
         foreach ($orders as $order) {
@@ -419,6 +451,7 @@ class Orders extends BaseController
                             ->where('order_id', $order['id'])
                             ->get()->getResult();
             
+            $startRow = $row;
             foreach ($orderItems as $item) {
                 $sheet->setCellValue('A' . $row, $order['order_number']);
                 $sheet->setCellValue('B' . $row, $order['customer_name']);
@@ -426,11 +459,27 @@ class Orders extends BaseController
                 $sheet->setCellValue('D' . $row, $order['customer_whatsapp']);
                 $sheet->setCellValue('E' . $row, ucfirst($order['status']));
                 $sheet->setCellValue('F' . $row, $order['payment_method']);
-                $sheet->setCellValue('G' . $row, $item->product_name . ' - ' . $item->variant_name);
-                $sheet->setCellValue('H' . $row, $item->quantity);
-                $sheet->setCellValue('I' . $row, $item->note);
-                $sheet->setCellValue('J' . $row, $item->shop_name ?? '-');
+                $sheet->setCellValue('G' . $row, 'Rp ' . number_format($order['total_amount'], 0, ',', '.'));
+                $sheet->setCellValue('H' . $row, $item->product_name . ' - ' . $item->variant_name);
+                $sheet->setCellValue('I' . $row, $item->quantity);
+                $sheet->setCellValue('J' . $row, $item->note);
+                $sheet->setCellValue('K' . $row, $item->shop_name ?? '-');
                 $row++;
+            }
+            
+            // Merge cells for order info if multiple items
+            if (count($orderItems) > 1) {
+                $endRow = $row - 1;
+                $sheet->mergeCells('A' . $startRow . ':A' . $endRow);
+                $sheet->mergeCells('B' . $startRow . ':B' . $endRow);
+                $sheet->mergeCells('C' . $startRow . ':C' . $endRow);
+                $sheet->mergeCells('D' . $startRow . ':D' . $endRow);
+                $sheet->mergeCells('E' . $startRow . ':E' . $endRow);
+                $sheet->mergeCells('F' . $startRow . ':F' . $endRow);
+                $sheet->mergeCells('G' . $startRow . ':G' . $endRow);
+                
+                // Center align merged cells
+                $sheet->getStyle('A' . $startRow . ':G' . $endRow)->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
             }
         }
         
@@ -449,17 +498,19 @@ class Orders extends BaseController
                    ->get()->getResult();
 
         foreach ($shops as $shop) {
-            $orderItems = $db->table('customer_order_items')
-                            ->select('customer_orders.order_number, customer_orders.customer_name, divisions.nama_divisi, customer_orders.customer_whatsapp, products.name as product_name, product_variants.variant_name, customer_order_items.quantity, customer_order_items.note')
-                            ->join('customer_orders', 'customer_orders.id = customer_order_items.order_id')
-                            ->join('divisions', 'divisions.id = customer_orders.division_id')
-                            ->join('product_variants', 'product_variants.id = customer_order_items.product_variant_id')
-                            ->join('products', 'products.id = product_variants.product_id')
-                            ->where('products.user_id', $shop->id)
-                            ->orderBy('customer_orders.order_number')
-                            ->get()->getResult();
+            // Get orders grouped by order_id for this shop
+            $orders = $db->table('customer_orders')
+                        ->select('customer_orders.id, customer_orders.order_number, customer_orders.customer_name, divisions.nama_divisi, customer_orders.customer_whatsapp, customer_orders.total_amount')
+                        ->join('customer_order_items', 'customer_order_items.order_id = customer_orders.id')
+                        ->join('product_variants', 'product_variants.id = customer_order_items.product_variant_id')
+                        ->join('products', 'products.id = product_variants.product_id')
+                        ->join('divisions', 'divisions.id = customer_orders.division_id')
+                        ->where('products.user_id', $shop->id)
+                        ->groupBy('customer_orders.id')
+                        ->orderBy('customer_orders.order_number')
+                        ->get()->getResult();
             
-            if (empty($orderItems)) continue;
+            if (empty($orders)) continue;
             
             $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
@@ -468,22 +519,49 @@ class Orders extends BaseController
             $sheet->setCellValue('B1', 'Nama');
             $sheet->setCellValue('C1', 'Divisi');
             $sheet->setCellValue('D1', 'WhatsApp');
-            $sheet->setCellValue('E1', 'Produk');
-            $sheet->setCellValue('F1', 'Catatan');
-            $sheet->setCellValue('G1', 'Qty');
+            $sheet->setCellValue('E1', 'Total Harga');
+            $sheet->setCellValue('F1', 'Produk');
+            $sheet->setCellValue('G1', 'Catatan');
+            $sheet->setCellValue('H1', 'Qty');
             
-            $sheet->getStyle('A1:G1')->getFont()->setBold(true);
+            $sheet->getStyle('A1:H1')->getFont()->setBold(true);
             
             $row = 2;
-            foreach ($orderItems as $item) {
-                $sheet->setCellValue('A' . $row, $item->order_number);
-                $sheet->setCellValue('B' . $row, $item->customer_name);
-                $sheet->setCellValue('C' . $row, $item->nama_divisi ?? 'N/A');
-                $sheet->setCellValue('D' . $row, $item->customer_whatsapp);
-                $sheet->setCellValue('E' . $row, $item->product_name . ' - ' . $item->variant_name);
-                $sheet->setCellValue('F' . $row, $item->note ?? '-');
-                $sheet->setCellValue('G' . $row, $item->quantity);
-                $row++;
+            foreach ($orders as $order) {
+                // Get order items for this order
+                $orderItems = $db->table('customer_order_items')
+                                ->select('customer_order_items.*, product_variants.variant_name, products.name as product_name')
+                                ->join('product_variants', 'product_variants.id = customer_order_items.product_variant_id')
+                                ->join('products', 'products.id = product_variants.product_id')
+                                ->where('customer_order_items.order_id', $order->id)
+                                ->where('products.user_id', $shop->id)
+                                ->get()->getResult();
+                
+                $startRow = $row;
+                foreach ($orderItems as $item) {
+                    $sheet->setCellValue('A' . $row, $order->order_number);
+                    $sheet->setCellValue('B' . $row, $order->customer_name);
+                    $sheet->setCellValue('C' . $row, $order->nama_divisi ?? 'N/A');
+                    $sheet->setCellValue('D' . $row, $order->customer_whatsapp);
+                    $sheet->setCellValue('E' . $row, 'Rp ' . number_format($order->total_amount, 0, ',', '.'));
+                    $sheet->setCellValue('F' . $row, $item->product_name . ' - ' . $item->variant_name);
+                    $sheet->setCellValue('G' . $row, $item->note ?? '-');
+                    $sheet->setCellValue('H' . $row, $item->quantity);
+                    $row++;
+                }
+                
+                // Merge cells for order info if multiple items
+                if (count($orderItems) > 1) {
+                    $endRow = $row - 1;
+                    $sheet->mergeCells('A' . $startRow . ':A' . $endRow);
+                    $sheet->mergeCells('B' . $startRow . ':B' . $endRow);
+                    $sheet->mergeCells('C' . $startRow . ':C' . $endRow);
+                    $sheet->mergeCells('D' . $startRow . ':D' . $endRow);
+                    $sheet->mergeCells('E' . $startRow . ':E' . $endRow);
+                    
+                    // Center align merged cells
+                    $sheet->getStyle('A' . $startRow . ':E' . $endRow)->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+                }
             }
             
             $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
